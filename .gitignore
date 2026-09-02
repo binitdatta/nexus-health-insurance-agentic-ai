@@ -1,0 +1,47 @@
+# ============================================================
+# Secrets — NEVER commit these. Every chatbot + the Gateway has
+# its own .env with a real Anthropic API key, MySQL password, and
+# Flask SECRET_KEY. Catches .env at any depth in any subproject.
+# ============================================================
+.env
+**/.env
+*.env
+!.env.example
+!**/.env.example
+
+# ============================================================
+# Python
+# ============================================================
+venv/
+**/venv/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+*.egg-info/
+
+# ============================================================
+# Logs — can contain full request/response payloads (including
+# retrieved data), so these stay local, never in git.
+# ============================================================
+logs/
+**/logs/*.log
+
+# ============================================================
+# Build artifacts / archives at the repo root
+# ============================================================
+archive/
+*.zip
+
+# ============================================================
+# OS / editor cruft
+# ============================================================
+.DS_Store
+**/.DS_Store
+.vscode/
+.idea/
+**/.idea/
