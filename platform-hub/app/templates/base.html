@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nexus Health Insurance — Agentic AI Platform{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-brand-gradient shadow-sm mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-semibold" href="{{ url_for('hub.home') }}">
+        <i class="bi bi-shield-plus me-2"></i>Nexus Health Insurance — AI Platform
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('hub.home') }}">
+              <i class="bi bi-house me-1"></i>Home
+            </a>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-robot me-1"></i>Chatbots
+            </a>
+            <ul class="dropdown-menu">
+              {% for bot in nav_chatbots %}
+              <li>
+                <a class="dropdown-item" href="http://{{ hub_host }}:{{ bot.port }}/" target="_blank" rel="noopener">
+                  <i class="bi {{ bot.icon }} me-2"></i>{{ bot.name }}
+                  <span class="text-muted small">:{{ bot.port }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == '/architecture' %}active{% endif %}" href="{{ url_for('hub.architecture') }}">
+              <i class="bi bi-diagram-3 me-1"></i>Architecture
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == '/hipaa-compliance' %}active{% endif %}" href="{{ url_for('hub.hipaa_compliance') }}">
+              <i class="bi bi-shield-lock me-1"></i>HIPAA Compliance
+            </a>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.path.startswith('/training') %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-camera-reels me-1"></i>Training
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" style="max-height: 70vh; overflow-y: auto; min-width: 340px;">
+              <li><a class="dropdown-item fw-semibold" href="{{ url_for('hub.training_index') }}">All Topics</a></li>
+              <li><hr class="dropdown-divider"></li>
+              {% for topic in nav_training_topics %}
+              <li>
+                <a class="dropdown-item small" href="{{ url_for('hub.training_topic', slug=topic.slug) }}">
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle me-1" style="font-size: 0.65rem;">{{ topic.category }}</span>
+                  {{ topic.title }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 pb-5">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="text-center text-muted small py-4 border-top mt-5">
+    Internal platform documentation &amp; demo hub — not a member-facing application.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

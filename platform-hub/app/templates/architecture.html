@@ -1,0 +1,1788 @@
+{% extends "base.html" %}
+{% block title %}Architecture — Nexus Health Insurance AI Platform{% endblock %}
+
+{% block content %}
+
+<style>
+    .architecture-page {
+        --arch-blue: #3155ff;
+        --arch-blue-dark: #162a78;
+        --arch-blue-soft: #eef3ff;
+        --arch-indigo-soft: #f4f5ff;
+        --arch-green-soft: #eefaf3;
+        --arch-purple-soft: #f7f1ff;
+        --arch-border: #dce4ff;
+    }
+
+    .architecture-hero {
+        background:
+            radial-gradient(circle at top right, rgba(49, 85, 255, .10), transparent 32%),
+            linear-gradient(135deg, #ffffff 0%, #f5f7ff 100%);
+        border: 1px solid var(--arch-border);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .architecture-hero .eyebrow {
+        color: var(--arch-blue);
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .architecture-image-shell {
+        background: #fff;
+        border: 1px solid #dfe5f5;
+        border-radius: 1rem;
+        padding: .75rem;
+        box-shadow: 0 12px 35px rgba(25, 42, 100, .10);
+    }
+
+    .architecture-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: .65rem;
+    }
+
+    .architecture-caption {
+        font-size: .9rem;
+        color: #667085;
+        line-height: 1.55;
+    }
+
+    .section-kicker {
+        color: var(--arch-blue);
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        margin-bottom: .25rem;
+    }
+
+    .layer-card {
+        border: 1px solid var(--arch-border);
+        border-radius: .9rem;
+        background: #fff;
+        height: 100%;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .layer-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(28, 52, 145, .08);
+    }
+
+    .layer-number {
+        width: 2.25rem;
+        height: 2.25rem;
+        min-width: 2.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--arch-blue);
+        font-weight: 700;
+    }
+
+    .architecture-callout {
+        background: var(--arch-blue-soft);
+        border-left: 4px solid var(--arch-blue);
+        border-radius: .65rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .architecture-warning {
+        background: #fff8e7;
+        border-left: 4px solid #f5a623;
+        border-radius: .65rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .architecture-success {
+        background: var(--arch-green-soft);
+        border-left: 4px solid #1d9b58;
+        border-radius: .65rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .flow-step {
+        position: relative;
+        padding-left: 3rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .flow-step:last-child {
+        padding-bottom: 0;
+    }
+
+    .flow-step::before {
+        content: "";
+        position: absolute;
+        left: 1rem;
+        top: 2rem;
+        bottom: 0;
+        width: 2px;
+        background: #dce4ff;
+    }
+
+    .flow-step:last-child::before {
+        display: none;
+    }
+
+    .flow-badge {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        background: var(--arch-blue);
+        color: #fff;
+        font-size: .8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .principle-card {
+        background: #fff;
+        border: 1px solid var(--arch-border);
+        border-radius: .8rem;
+        padding: 1rem;
+        height: 100%;
+    }
+
+    .principle-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: .65rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--arch-blue-soft);
+        color: var(--arch-blue);
+        font-size: 1.2rem;
+    }
+
+    .dept-pill {
+        display: inline-block;
+        padding: .35rem .65rem;
+        margin: .15rem;
+        border-radius: 2rem;
+        background: var(--arch-blue-soft);
+        color: #2843b8;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .code-label {
+        background: #f5f7fb;
+        border: 1px solid #e1e6ef;
+        border-radius: .35rem;
+        padding: .1rem .4rem;
+        font-family: var(--bs-font-monospace);
+        font-size: .82em;
+        color: #be2c7d;
+    }
+
+    .mini-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .mini-flow-node {
+        border: 1px solid #b9c6ff;
+        background: #fff;
+        color: #17245c;
+        padding: .55rem .8rem;
+        border-radius: .5rem;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .mini-flow-arrow {
+        color: var(--arch-blue);
+        font-size: 1.15rem;
+    }
+
+    .table-architecture th {
+        white-space: nowrap;
+    }
+
+    @media (max-width: 767.98px) {
+        .architecture-hero {
+            padding: 1.25rem;
+        }
+
+        .architecture-image-shell {
+            padding: .35rem;
+        }
+    }
+</style>
+
+
+<!-- ============================================================
+     PAGE HEADER / EXECUTIVE INTRODUCTION
+     ============================================================ -->
+<div class="architecture-hero mb-4">
+
+    <div class="eyebrow mb-2">
+        <i class="bi bi-diagram-3 me-1"></i>
+        Platform Architecture
+    </div>
+
+    <h1 class="h2 fw-bold mb-2">
+        Nexus Health Insurance AI Platform
+    </h1>
+
+    <p class="lead text-muted mb-3">
+        A department-oriented AI architecture in which ten independently
+        operated healthcare chatbots share centralized identity, controlled
+        LLM access, and a common data platform while retaining their own
+        business context and department boundaries.
+    </p>
+
+    <p class="mb-0">
+        The architecture is intentionally designed around a simple principle:
+        <strong>centralize the capabilities that should be common</strong>
+        — authentication, LLM connectivity, governance and platform logging —
+        while keeping
+        <strong>department-specific business behavior close to the department chatbot</strong>.
+    </p>
+
+</div>
+
+
+<!-- ============================================================
+     ARCHITECTURE IMAGE
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand d-flex align-items-center">
+        <i class="bi bi-diagram-3 me-2"></i>
+        System Architecture
+    </div>
+
+    <div class="card-body p-3 p-lg-4">
+
+        <div class="architecture-image-shell">
+
+            <img
+                src="{{ url_for('static', filename='img/architecture.png') }}"
+                class="architecture-image"
+                alt="Nexus Health Insurance AI Platform architecture showing department users, Keycloak, ten Flask chatbots, the Central LLM Gateway, Anthropic API, and MySQL 8 data services">
+
+        </div>
+
+        <div class="architecture-caption mt-3">
+
+            <strong>Reading the diagram:</strong>
+            follow the architecture from top to bottom.
+            Department users authenticate through the shared Keycloak realm,
+            enter their own department chatbot, retrieve department-specific
+            information, and use the Central LLM Gateway whenever an LLM
+            operation is required. The Gateway provides the controlled outbound
+            path to Anthropic.
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     QUICK ARCHITECTURE SUMMARY
+     ============================================================ -->
+<div class="row g-3 mb-5">
+
+    <div class="col-md-6 col-xl-3">
+        <div class="principle-card">
+
+            <div class="principle-icon mb-3">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+
+            <h6 class="fw-bold">One Identity Plane</h6>
+
+            <p class="small text-muted mb-0">
+                One Keycloak 26 realm provides centralized authentication,
+                while department-specific users, client registrations,
+                claims and authorization boundaries distinguish the ten
+                chatbot applications.
+            </p>
+
+        </div>
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+        <div class="principle-card">
+
+            <div class="principle-icon mb-3">
+                <i class="bi bi-robot"></i>
+            </div>
+
+            <h6 class="fw-bold">Ten Department Applications</h6>
+
+            <p class="small text-muted mb-0">
+                Claims, Nursing, Billing, Finance and the other departments
+                operate as independent Python Flask applications with their
+                own ports, business context, retrieval behavior and
+                LangGraph workflows.
+            </p>
+
+        </div>
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+        <div class="principle-card">
+
+            <div class="principle-icon mb-3">
+                <i class="bi bi-signpost-split"></i>
+            </div>
+
+            <h6 class="fw-bold">One LLM Egress Path</h6>
+
+            <p class="small text-muted mb-0">
+                Individual chatbots do not independently manage Anthropic
+                connectivity. LLM requests are mediated through the
+                <code>central-llm-gateway</code> on port 8000.
+            </p>
+
+        </div>
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+        <div class="principle-card">
+
+            <div class="principle-icon mb-3">
+                <i class="bi bi-database"></i>
+            </div>
+
+            <h6 class="fw-bold">One Common Data Platform</h6>
+
+            <p class="small text-muted mb-0">
+                MySQL 8 provides the shared physical database platform while
+                department IDs, department-specific tables and
+                <code>knowledge_docs</code> maintain logical separation.
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     HOW TO EXPLAIN THE DIAGRAM
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-mic me-2"></i>
+        How to Explain This Architecture
+    </div>
+
+    <div class="card-body">
+
+        <p class="text-muted">
+            A useful way to present the platform is to describe it as six
+            architectural layers. Each layer solves a different problem.
+        </p>
+
+
+        <div class="row g-4">
+
+            <!-- 1 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">1</span>
+
+                        <div>
+
+                            <h5 class="mb-1">Access Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                The starting point is the healthcare employee
+                                using a normal web browser.
+                            </p>
+
+                            <p class="small mb-0">
+                                Users do not enter one giant generic chatbot.
+                                They enter the chatbot belonging to their
+                                business function — for example Claims,
+                                Nursing, Billing or Finance.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- 2 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">2</span>
+
+                        <div>
+
+                            <h5 class="mb-1">Identity Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                Keycloak 26 is the common authentication
+                                authority for the entire platform.
+                            </p>
+
+                            <p class="small mb-0">
+                                Authentication uses OAuth 2.0 / OpenID Connect
+                                with PKCE. Users remain distinguishable by
+                                department instead of every chatbot sharing
+                                one anonymous technical identity.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- 3 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">3</span>
+
+                        <div>
+
+                            <h5 class="mb-1">Application Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                The platform contains ten separate Python Flask
+                                chatbot applications.
+                            </p>
+
+                            <p class="small mb-0">
+                                Each chatbot understands the vocabulary,
+                                transactional data, policies and workflows of
+                                its own department rather than forcing one
+                                application to understand every healthcare
+                                domain.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- 4 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">4</span>
+
+                        <div>
+
+                            <h5 class="mb-1">Shared Integration Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                The Central LLM Gateway separates internal
+                                applications from the external LLM provider.
+                            </p>
+
+                            <p class="small mb-0">
+                                This creates one controlled integration point
+                                for authentication validation, request
+                                mediation, model access policy and consistent
+                                LLM-call behavior.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- 5 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">5</span>
+
+                        <div>
+
+                            <h5 class="mb-1">External LLM Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                Anthropic provides the external large language
+                                model capability.
+                            </p>
+
+                            <p class="small mb-0">
+                                The enterprise applications do not need to
+                                know how every external model provider is
+                                accessed. That concern is abstracted behind
+                                the Gateway.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- 6 -->
+            <div class="col-lg-6">
+                <div class="layer-card p-3">
+
+                    <div class="d-flex gap-3">
+
+                        <span class="layer-number">6</span>
+
+                        <div>
+
+                            <h5 class="mb-1">Data Layer</h5>
+
+                            <p class="small text-muted mb-2">
+                                MySQL 8.x provides the common persistence
+                                platform.
+                            </p>
+
+                            <p class="small mb-0">
+                                It stores department business data,
+                                department-scoped RAG documents, user mappings,
+                                LLM-call information, HTTP-call information,
+                                HITL tasks and cost summaries.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     DEPARTMENT CHATBOTS
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-grid-3x3-gap me-2"></i>
+        Ten Department Chatbots — One Platform
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            The ten applications are intentionally separate deployments.
+            This gives each department a clear application boundary while
+            still allowing common infrastructure to be reused.
+        </p>
+
+        <div class="mb-4">
+
+            <span class="dept-pill">Claims · :5001</span>
+            <span class="dept-pill">Prior Authorization · :5002</span>
+            <span class="dept-pill">Nursing · :5003</span>
+            <span class="dept-pill">Call Center · :5004</span>
+            <span class="dept-pill">Billing · :5005</span>
+            <span class="dept-pill">Facility &amp; Providers · :5006</span>
+            <span class="dept-pill">Adjudication · :5007</span>
+            <span class="dept-pill">Finance · :5008</span>
+            <span class="dept-pill">Management · :5009</span>
+            <span class="dept-pill">Member Services · :5010</span>
+
+        </div>
+
+
+        <div class="architecture-callout">
+
+            <strong>
+                <i class="bi bi-lightbulb me-1"></i>
+                The important architectural distinction
+            </strong>
+
+            <div class="small mt-1">
+                These are not ten different copies of an Anthropic
+                integration. They are ten department applications consuming
+                a <strong>shared enterprise AI capability</strong> through
+                one Central LLM Gateway.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     REQUEST JOURNEY
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-arrow-left-right me-2"></i>
+        End-to-End User Request Journey
+    </div>
+
+    <div class="card-body">
+
+        <p class="text-muted mb-4">
+            A single user question crosses several trust and processing
+            boundaries before a response is returned.
+        </p>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">1</span>
+
+            <h6 class="fw-bold mb-1">
+                User enters the department application
+            </h6>
+
+            <p class="small text-muted mb-0">
+                A Claims employee opens the Claims chatbot, a Billing employee
+                opens Billing, and so on.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">2</span>
+
+            <h6 class="fw-bold mb-1">
+                Keycloak authenticates the user
+            </h6>
+
+            <p class="small text-muted mb-0">
+                The chatbot initiates an OIDC Authorization Code + PKCE flow.
+                Keycloak authenticates the human and issues the signed token
+                used by the application.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">3</span>
+
+            <h6 class="fw-bold mb-1">
+                The chatbot interprets the request
+            </h6>
+
+            <p class="small text-muted mb-0">
+                LangGraph coordinates intent classification, retrieval,
+                response synthesis and — when needed — preparation of a
+                human-reviewable transaction.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">4</span>
+
+            <h6 class="fw-bold mb-1">
+                Department retrieval happens locally
+            </h6>
+
+            <p class="small text-muted mb-0">
+                The chatbot queries only the business data and
+                <code>knowledge_docs</code> relevant to its department.
+                Retrieved information becomes controlled context for the
+                subsequent LLM request.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">5</span>
+
+            <h6 class="fw-bold mb-1">
+                The chatbot calls the Central LLM Gateway
+            </h6>
+
+            <p class="small text-muted mb-0">
+                The user token is relayed with the request. The Gateway
+                verifies the request's department identity before allowing it
+                to proceed.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">6</span>
+
+            <h6 class="fw-bold mb-1">
+                The Gateway calls Anthropic
+            </h6>
+
+            <p class="small text-muted mb-0">
+                Anthropic receives the prompt and context through the one
+                controlled outbound AI integration path.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">7</span>
+
+            <h6 class="fw-bold mb-1">
+                The answer returns to the department chatbot
+            </h6>
+
+            <p class="small text-muted mb-0">
+                The chatbot presents the generated answer to the authenticated
+                user and can continue the LangGraph workflow.
+            </p>
+
+        </div>
+
+
+        <div class="flow-step">
+
+            <span class="flow-badge">8</span>
+
+            <h6 class="fw-bold mb-1">
+                High-impact changes require a human decision
+            </h6>
+
+            <p class="small text-muted mb-0">
+                For create or update operations, AI proposes the action.
+                A human reviewer approves or rejects the proposed transaction
+                before the database is changed.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     SECURITY + LANGGRAPH
+     ============================================================ -->
+<div class="row g-4 mb-5">
+
+    <!-- Auth -->
+    <div class="col-xl-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header card-header-brand">
+                <i class="bi bi-key me-2"></i>
+                Authentication: User Token Relay
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    The design preserves the identity of the original human
+                    user all the way into the Gateway instead of replacing
+                    that user with a generic shared credential.
+                </p>
+
+                <ol class="small">
+
+                    <li class="mb-2">
+                        The user signs into their department chatbot using
+                        PKCE.
+                    </li>
+
+                    <li class="mb-2">
+                        Keycloak issues a signed access token carrying the
+                        user's department information.
+                    </li>
+
+                    <li class="mb-2">
+                        The chatbot backend relays the
+                        <strong>same user token</strong> to the Gateway.
+                    </li>
+
+                    <li class="mb-2">
+                        The Gateway compares the token's
+                        <code>department</code> claim with the request's
+                        <code>dept_code</code>.
+                    </li>
+
+                    <li>
+                        The department chatbot independently checks the
+                        token's <code>azp</code> against its own Keycloak
+                        client ID.
+                    </li>
+
+                </ol>
+
+
+                <div class="architecture-success mt-3">
+
+                    <strong>Why this matters</strong>
+
+                    <div class="small mt-1">
+                        A Claims identity cannot simply claim to be Billing.
+                        Identity remains attributable to the user and the
+                        department throughout the request path.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LangGraph -->
+    <div class="col-xl-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header card-header-brand">
+                <i class="bi bi-bezier2 me-2"></i>
+                LangGraph Orchestration
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    LangGraph is used inside each department chatbot to
+                    coordinate application behavior rather than treating
+                    every interaction as a single prompt.
+                </p>
+
+
+                <div class="mini-flow mb-4">
+
+                    <span class="mini-flow-node">
+                        classify_intent
+                    </span>
+
+                    <span class="mini-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="mini-flow-node">
+                        retrieve
+                    </span>
+
+                    <span class="mini-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="mini-flow-node">
+                        synthesize
+                    </span>
+
+                    <span class="mini-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="mini-flow-node">
+                        hitl_draft
+                    </span>
+
+                </div>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm align-middle">
+
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Node</th>
+                                <th>Responsibility</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td><code>classify_intent</code></td>
+                                <td>
+                                    Determines what kind of business operation
+                                    the user is requesting.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><code>retrieve</code></td>
+                                <td>
+                                    Reads department-specific business and RAG
+                                    data.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><code>synthesize</code></td>
+                                <td>
+                                    Uses the LLM to construct the contextual
+                                    response.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><code>hitl_draft</code></td>
+                                <td>
+                                    Produces a proposed structured transaction
+                                    for create/update use cases.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <p class="small text-muted mb-0">
+                    The key boundary is that
+                    <strong>retrieval belongs to the department chatbot</strong>.
+                    The Central Gateway is not the enterprise RAG engine.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     RAG BOUNDARY
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-search me-2"></i>
+        RAG and Data Boundary
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-4 align-items-center">
+
+            <div class="col-lg-7">
+
+                <h5 class="fw-bold">
+                    Retrieval stays inside the department application
+                </h5>
+
+                <p>
+                    The Gateway is deliberately prevented from becoming a
+                    giant cross-department data-access service.
+                </p>
+
+                <p class="mb-0">
+                    A department chatbot retrieves the records and policy
+                    documents that it is authorized to use. It then sends
+                    only the context required for the current LLM operation
+                    to the Central LLM Gateway.
+                </p>
+
+            </div>
+
+
+            <div class="col-lg-5">
+
+                <div class="architecture-callout">
+
+                    <div class="fw-bold mb-2">
+                        <i class="bi bi-shield-check me-1"></i>
+                        Important Boundary
+                    </div>
+
+                    <div class="small">
+
+                        <strong>Department chatbot:</strong>
+                        understands business tables and
+                        <code>knowledge_docs</code>.
+
+                        <hr class="my-2">
+
+                        <strong>Central Gateway:</strong>
+                        understands LLM requests, authentication context and
+                        AI-provider interaction.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     CENTRAL LLM GATEWAY
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-signpost-2 me-2"></i>
+        Why the Central LLM Gateway Exists
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            Without the Gateway, every department chatbot would become its
+            own independent AI integration. That would spread model
+            credentials, provider-specific code and governance rules across
+            ten different applications.
+        </p>
+
+
+        <div class="row g-3 mt-1">
+
+            <div class="col-md-6 col-xl-3">
+
+                <div class="principle-card">
+
+                    <h6 class="fw-bold">
+                        <i class="bi bi-key text-primary me-1"></i>
+                        Credential Isolation
+                    </h6>
+
+                    <p class="small text-muted mb-0">
+                        External LLM connectivity can be managed centrally
+                        rather than copied into every chatbot.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+
+                <div class="principle-card">
+
+                    <h6 class="fw-bold">
+                        <i class="bi bi-shield-check text-primary me-1"></i>
+                        Policy Enforcement
+                    </h6>
+
+                    <p class="small text-muted mb-0">
+                        Department identity can be verified before requests
+                        are allowed to use the shared AI service.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+
+                <div class="principle-card">
+
+                    <h6 class="fw-bold">
+                        <i class="bi bi-journal-text text-primary me-1"></i>
+                        Consistent Logging
+                    </h6>
+
+                    <p class="small text-muted mb-0">
+                        LLM usage can be measured consistently across the
+                        organization.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+
+                <div class="principle-card">
+
+                    <h6 class="fw-bold">
+                        <i class="bi bi-arrow-repeat text-primary me-1"></i>
+                        Provider Abstraction
+                    </h6>
+
+                    <p class="small text-muted mb-0">
+                        Department applications remain insulated from much of
+                        the external provider integration detail.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     HITL
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-person-check me-2"></i>
+        Human-in-the-Loop: AI Proposes, Humans Commit
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            Reading information and changing business records have very
+            different risk profiles. The platform therefore treats
+            transactional requests differently from normal question
+            answering.
+        </p>
+
+
+        <div class="mini-flow mb-4">
+
+            <span class="mini-flow-node">
+                User Request
+            </span>
+
+            <span class="mini-flow-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </span>
+
+            <span class="mini-flow-node">
+                AI Draft
+            </span>
+
+            <span class="mini-flow-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </span>
+
+            <span class="mini-flow-node">
+                Human Review
+            </span>
+
+            <span class="mini-flow-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </span>
+
+            <span class="mini-flow-node">
+                Approve / Reject
+            </span>
+
+            <span class="mini-flow-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </span>
+
+            <span class="mini-flow-node">
+                Database Commit
+            </span>
+
+        </div>
+
+
+        <p class="small">
+            For <code>create_record</code> and
+            <code>update_record</code>, the model receives the actual
+            <code>allowed_fields</code> and
+            <code>required_fields</code> for the target table.
+            This constrains the draft to fields that genuinely exist in the
+            application schema.
+        </p>
+
+
+        <div class="row g-3">
+
+            <div class="col-md-6">
+
+                <div class="card h-100 border-0 bg-light">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold">
+                            <i class="bi bi-chat-square-text me-1"></i>
+                            Inline Review
+                        </h6>
+
+                        <p class="small text-muted mb-0">
+                            Proposed fields appear directly in the chat UI,
+                            where the user can inspect and edit them before
+                            selecting Approve or Reject.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="card h-100 border-0 bg-light">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold">
+                            <i class="bi bi-list-check me-1"></i>
+                            Review Queue
+                        </h6>
+
+                        <p class="small text-muted mb-0">
+                            Pending and historical tasks are available through
+                            a review queue so proposed AI actions remain
+                            visible and auditable.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="architecture-warning mt-3">
+
+            <strong>Adjudication is intentionally different.</strong>
+
+            <div class="small mt-1">
+                A re-adjudication represents a new decision event.
+                Because <code>claim_number</code> is not unique in that
+                table, the application inserts a new adjudication record
+                rather than overwriting the previous decision.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     DATABASE
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-database me-2"></i>
+        MySQL 8.x Data Architecture
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            A single MySQL database provides common infrastructure without
+            implying that every chatbot should freely access every
+            department's information.
+        </p>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-sm align-middle table-architecture">
+
+                <thead class="table-primary">
+
+                    <tr>
+                        <th>Database Object</th>
+                        <th>Architectural Responsibility</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>
+                            <code>departments</code>
+                        </td>
+                        <td>
+                            Tenancy and department anchor. Domain and
+                            operational records can be associated with a
+                            <code>dept_id</code>.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>app_users</code>
+                        </td>
+                        <td>
+                            Application-side representation of Keycloak
+                            identities for relational integrity and business
+                            references.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            10 domain tables
+                        </td>
+                        <td>
+                            Transactional healthcare data owned by the
+                            individual departments, such as claims,
+                            billing records and provider information.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>knowledge_docs</code>
+                        </td>
+                        <td>
+                            Department-scoped policies, SOPs and knowledge
+                            used for RAG. MySQL FULLTEXT search supports
+                            retrieval.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>llm_call_log</code>
+                        </td>
+                        <td>
+                            Captures LLM-call details including request and
+                            response payload information, token usage,
+                            cost and latency.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>http_call_log</code>
+                        </td>
+                        <td>
+                            Records chatbot-to-Gateway HTTP interactions
+                            independently of the LLM operation.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>hitl_task_queue</code>
+                        </td>
+                        <td>
+                            Persists AI-generated transaction proposals,
+                            review status and final human decision.
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            <code>cost_summary_daily</code>
+                        </td>
+                        <td>
+                            Pre-aggregated daily usage and cost data for
+                            dashboards and operational reporting.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     WHAT IS CENTRALIZED / WHAT IS DEPARTMENT SPECIFIC
+     ============================================================ -->
+<div class="row g-4 mb-5">
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header card-header-brand">
+                <i class="bi bi-diagram-3-fill me-2"></i>
+                Shared Across the Platform
+            </div>
+
+            <div class="card-body">
+
+                <ul class="small mb-0">
+
+                    <li class="mb-2">
+                        Keycloak identity infrastructure
+                    </li>
+
+                    <li class="mb-2">
+                        OAuth/OIDC authentication model
+                    </li>
+
+                    <li class="mb-2">
+                        Central LLM Gateway
+                    </li>
+
+                    <li class="mb-2">
+                        Anthropic integration
+                    </li>
+
+                    <li class="mb-2">
+                        MySQL 8 physical database platform
+                    </li>
+
+                    <li class="mb-2">
+                        LLM and HTTP operational logging
+                    </li>
+
+                    <li>
+                        HITL task infrastructure and cost reporting
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header card-header-brand">
+                <i class="bi bi-person-workspace me-2"></i>
+                Department Specific
+            </div>
+
+            <div class="card-body">
+
+                <ul class="small mb-0">
+
+                    <li class="mb-2">
+                        Flask application and application port
+                    </li>
+
+                    <li class="mb-2">
+                        Department users and authorization context
+                    </li>
+
+                    <li class="mb-2">
+                        Department business terminology
+                    </li>
+
+                    <li class="mb-2">
+                        Transactional business tables
+                    </li>
+
+                    <li class="mb-2">
+                        RAG knowledge and policy documents
+                    </li>
+
+                    <li class="mb-2">
+                        Business validation rules
+                    </li>
+
+                    <li>
+                        Department-specific workflows and HITL behavior
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     ARCHITECTURAL PRINCIPLES
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-building-check me-2"></i>
+        Architectural Principles Demonstrated
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Separation of Concerns</h6>
+                    <p class="small text-muted mb-0">
+                        Authentication, business logic, retrieval, LLM access
+                        and persistence are separate architectural
+                        responsibilities.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Least-Privilege Thinking</h6>
+                    <p class="small text-muted mb-0">
+                        Department-specific access reduces the need for one
+                        universal chatbot to possess broad access across all
+                        healthcare domains.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Centralized AI Governance</h6>
+                    <p class="small text-muted mb-0">
+                        External LLM traffic traverses a controlled shared
+                        integration point instead of being independently
+                        implemented ten times.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Identity Propagation</h6>
+                    <p class="small text-muted mb-0">
+                        The original user's signed identity remains available
+                        when the chatbot calls the shared Gateway.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Human Accountability</h6>
+                    <p class="small text-muted mb-0">
+                        AI can draft business changes, but higher-impact writes
+                        remain subject to explicit human approval.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-4">
+                <div class="principle-card">
+                    <h6 class="fw-bold">Observability</h6>
+                    <p class="small text-muted mb-0">
+                        HTTP activity, model activity, token usage, costs,
+                        latency and HITL decisions can be tracked rather than
+                        leaving AI behavior opaque.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     TESTING
+     ============================================================ -->
+<div class="card shadow-sm mb-5">
+
+    <div class="card-header card-header-brand">
+        <i class="bi bi-check2-circle me-2"></i>
+        What "Tested" Means in This Platform
+    </div>
+
+    <div class="card-body">
+
+        <p class="text-muted">
+            Architecture is more than boxes and arrows. The security and
+            integration boundaries are exercised through repeatable tests.
+        </p>
+
+
+        <div class="row g-4">
+
+            <div class="col-md-3 col-6">
+
+                <div class="text-center">
+
+                    <div class="fs-2 fw-bold text-primary">
+                        27–31
+                    </div>
+
+                    <div class="small text-muted">
+                        automated tests per chatbot against seeded data
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-6">
+
+                <div class="text-center">
+
+                    <div class="fs-2 fw-bold text-primary">
+                        10 / 10
+                    </div>
+
+                    <div class="small text-muted">
+                        departments validated with signed Keycloak tokens
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-6">
+
+                <div class="text-center">
+
+                    <div class="fs-2 fw-bold text-primary">
+                        + / −
+                    </div>
+
+                    <div class="small text-muted">
+                        both valid-access and invalid-department cases tested
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-6">
+
+                <div class="text-center">
+
+                    <div class="fs-2 fw-bold text-primary">
+                        100%
+                    </div>
+
+                    <div class="small text-muted">
+                        shipped packages re-extracted, installed and re-tested
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     FINAL EXECUTIVE SUMMARY
+     ============================================================ -->
+<div class="architecture-callout mb-4">
+
+    <div class="d-flex gap-3 align-items-start">
+
+        <i class="bi bi-info-circle-fill fs-4 text-primary"></i>
+
+        <div>
+
+            <h5 class="fw-bold mb-2">
+                The architecture in one sentence
+            </h5>
+
+            <p class="mb-0">
+                <strong>
+                    Ten department-specific Python Flask AI applications
+                </strong>
+                use
+                <strong>one Keycloak identity plane</strong>,
+                perform
+                <strong>their own department-scoped retrieval</strong>,
+                access Anthropic through
+                <strong>one controlled Central LLM Gateway</strong>,
+                persist operational and business information in
+                <strong>one logically segmented MySQL 8 platform</strong>,
+                and place a
+                <strong>human approval boundary</strong>
+                in front of consequential data changes.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

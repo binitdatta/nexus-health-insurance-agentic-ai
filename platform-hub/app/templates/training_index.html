@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Training Topics — Nexus Health Insurance AI Platform{% endblock %}
+{% block content %}
+
+<h2 class="mb-1"><i class="bi bi-camera-reels me-2"></i>Training Topics</h2>
+<p class="text-muted mb-4">
+  Candidate YouTube video topics, each built from something that actually happened during this
+  platform's build — a real bug, a real design decision, a real trade-off — not a generic tutorial
+  outline. Click a topic for the full outline and the files worth showing on screen.
+</p>
+
+{% for category in categories %}
+<h5 class="mt-4 mb-3">{{ category }}</h5>
+<div class="row g-3 mb-2">
+  {% for topic in nav_training_topics if topic.category == category %}
+  <div class="col-md-6">
+    <a href="{{ url_for('hub.training_topic', slug=topic.slug) }}" class="text-decoration-none">
+      <div class="card topic-card shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="card-title text-dark">{{ topic.title }}</h6>
+          <p class="card-text small text-muted mb-2">{{ topic.hook }}</p>
+          <span class="badge bg-light text-dark border">{{ topic.length }}</span>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+{% endblock %}

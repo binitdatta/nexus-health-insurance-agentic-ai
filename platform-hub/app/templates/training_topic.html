@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title }} — Training — Nexus Health Insurance AI Platform{% endblock %}
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{{ url_for('hub.training_index') }}">Training</a></li>
+    <li class="breadcrumb-item active">{{ topic.title }}</li>
+  </ol>
+</nav>
+
+<span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle mb-2">{{ topic.category }}</span>
+<h2 class="mb-3">{{ topic.title }}</h2>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="text-uppercase small text-muted">The hook</h6>
+        <p>{{ topic.hook }}</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header card-header-brand">Outline</div>
+      <div class="card-body">
+        <ol class="mb-0">
+          {% for point in topic.outline %}
+          <li class="mb-2">{{ point }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h6 class="text-uppercase small text-muted">Target length</h6>
+        <p class="mb-0">{{ topic.length }}</p>
+      </div>
+    </div>
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h6 class="text-uppercase small text-muted">Audience</h6>
+        <p class="mb-0 small">{{ topic.audience }}</p>
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-uppercase small text-muted">Files to show on screen</h6>
+        <ul class="small mb-0">
+          {% for f in topic.files_to_show %}
+          <li><code>{{ f }}</code></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="{{ url_for('hub.training_index') }}" class="btn btn-outline-secondary btn-sm mt-4">
+  <i class="bi bi-arrow-left me-1"></i>Back to all topics
+</a>
+
+{% endblock %}

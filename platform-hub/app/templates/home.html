@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Nexus Health Insurance — Agentic AI Platform{% endblock %}
+{% block content %}
+
+<div class="hero-gradient p-5 mb-5">
+  <h1 class="fw-bold mb-3"><i class="bi bi-robot me-2"></i>Agentic AI Platform</h1>
+  <p class="lead mb-0" style="max-width: 760px;">
+    Ten department-scoped chatbots, one central LLM Gateway, one Keycloak
+    realm. Every chatbot does its own retrieval against its own department's
+    data, relays the logged-in user's own token for every LLM call, and
+    supports human-in-the-loop record creation — approve, edit, or reject
+    before anything is written.
+  </p>
+  <div class="mt-4 d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('hub.architecture') }}" class="btn btn-light btn-sm">
+      <i class="bi bi-diagram-3 me-1"></i>How it's built
+    </a>
+    <a href="{{ url_for('hub.hipaa_compliance') }}" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-shield-lock me-1"></i>HIPAA compliance status
+    </a>
+  </div>
+</div>
+
+<h4 class="mb-3">Department Chatbots</h4>
+<div class="row g-3 mb-5">
+  {% for bot in nav_chatbots %}
+  <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="card chatbot-card shadow-sm">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi {{ bot.icon }} fs-4 text-primary me-2"></i>
+          <h6 class="card-title mb-0">{{ bot.name }}</h6>
+        </div>
+        <p class="card-text small text-muted flex-grow-1">{{ bot.description }}</p>
+        <a href="http://{{ hub_host }}:{{ bot.port }}/" target="_blank" rel="noopener"
+           class="btn btn-primary btn-sm mt-2">
+          Open <span class="text-white-50">:{{ bot.port }}</span>
+          <i class="bi bi-box-arrow-up-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6><i class="bi bi-hdd-network me-2 text-primary"></i>Shared Infrastructure</h6>
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr><th class="text-nowrap">Central LLM Gateway</th><td>every chatbot's only path to Anthropic — <code>:{{ 8000 }}</code></td></tr>
+            <tr><th class="text-nowrap">Keycloak (Central Realm)</th><td>PKCE public clients, department-scoped RBAC — <code>:8080</code></td></tr>
+            <tr><th class="text-nowrap">MySQL 8.x</th><td><code>health_ai_platform</code> — departments, domain tables, audit logs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6><i class="bi bi-camera-reels me-2 text-primary"></i>Training Content</h6>
+        <p class="small text-muted">
+          Every chatbot in this platform came with a real bug caught and
+          fixed before delivery — a version pin, a session-mutation gotcha,
+          a SQL apostrophe that silently broke a script. The Training menu
+          turns those into concrete video topics with real outlines, not
+          generic tutorial ideas.
+        </p>
+        <a href="{{ url_for('hub.training_index') }}" class="btn btn-outline-primary btn-sm">
+          Browse topics <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

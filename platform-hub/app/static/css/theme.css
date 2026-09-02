@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Bright Blue theme — overrides Bootstrap 5's CSS custom properties so
+   every component that derives from --bs-primary (buttons, links, focus
+   rings, badges, nav-pills, form checks...) picks up a genuinely vivid
+   blue instead of Bootstrap's default muted #0d6efd. Explicit component
+   overrides are included too as a safety net for anything that doesn't
+   fully derive from the variables.
+   ========================================================================== */
+
+:root,
+[data-bs-theme="light"] {
+  --bs-primary: #3b5bfd;
+  --bs-primary-rgb: 59, 91, 253;
+  --bs-primary-text-emphasis: #1c2e9e;
+  --bs-primary-bg-subtle: #e2e7ff;
+  --bs-primary-border-subtle: #b9c4ff;
+  --bs-link-color: #3b5bfd;
+  --bs-link-color-rgb: 59, 91, 253;
+  --bs-link-hover-color: #2a44e0;
+  --bs-link-hover-color-rgb: 42, 68, 224;
+
+  --brand-navy: #0a1240;
+  --brand-blue: #3b5bfd;
+  --brand-blue-bright: #2f7bff;
+}
+
+body {
+  background-color: #f4f6ff;
+}
+
+.navbar-brand-gradient {
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-blue) 55%, var(--brand-blue-bright) 100%);
+}
+
+.btn-primary {
+  --bs-btn-bg: #3b5bfd;
+  --bs-btn-border-color: #3b5bfd;
+  --bs-btn-hover-bg: #2a44e0;
+  --bs-btn-hover-border-color: #2440d6;
+  --bs-btn-active-bg: #2440d6;
+  --bs-btn-active-border-color: #1f39c2;
+  --bs-btn-disabled-bg: #3b5bfd;
+  --bs-btn-disabled-border-color: #3b5bfd;
+  --bs-btn-focus-shadow-rgb: 59, 91, 253;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #3b5bfd;
+  --bs-btn-border-color: #3b5bfd;
+  --bs-btn-hover-bg: #3b5bfd;
+  --bs-btn-hover-border-color: #3b5bfd;
+  --bs-btn-active-bg: #2a44e0;
+  --bs-btn-active-border-color: #2a44e0;
+}
+
+.badge.bg-primary { background-color: #3b5bfd !important; }
+.text-primary { color: #3b5bfd !important; }
+.border-primary { border-color: #3b5bfd !important; }
+
+.card-header-brand {
+  background: linear-gradient(120deg, var(--brand-navy) 0%, var(--brand-blue) 100%);
+  color: #fff;
+}
+
+.chat-bubble-user {
+  background-color: #3b5bfd;
+  color: #fff;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+}
+
+.chat-bubble-assistant {
+  background-color: #ffffff;
+  border: 1px solid #dbe1ff;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+}
+
+.hitl-card {
+  border-left: 4px solid #3b5bfd;
+}
+
+.status-pill-pending { background-color: #fff3cd; color: #7a5b00; }
+.status-pill-approved,
+.status-pill-edited { background-color: #d7e9ff; color: #123a8c; }
+.status-pill-rejected { background-color: #f8d7da; color: #7a1f27; }
+
+.kpi-card {
+  border: none;
+  border-top: 4px solid #3b5bfd;
+}
+
+a { color: var(--bs-link-color); }
+
+/* --- Hub-specific additions (architecture diagram, training cards) --- */
+
+.arch-box {
+  border: 2px solid var(--brand-blue);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--brand-navy);
+  box-shadow: 0 2px 6px rgba(59, 91, 253, 0.12);
+}
+
+.arch-box.arch-box-muted {
+  border-style: dashed;
+  color: #5c6b9e;
+  font-weight: 500;
+  background: #f4f6ff;
+}
+
+.arch-arrow-down {
+  display: flex;
+  justify-content: center;
+  color: var(--brand-blue);
+  font-size: 1.5rem;
+  line-height: 1;
+  margin: 0.25rem 0;
+}
+
+.arch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.arch-row .arch-box { flex: 1 1 160px; }
+
+.topic-card {
+  border: none;
+  border-left: 4px solid #3b5bfd;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.topic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 91, 253, 0.15);
+}
+
+.chatbot-card {
+  border: none;
+  border-top: 4px solid #3b5bfd;
+  height: 100%;
+}
+
+.gpu-table th { white-space: nowrap; }
+
+.hero-gradient {
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-blue) 55%, var(--brand-blue-bright) 100%);
+  color: #fff;
+  border-radius: 0.75rem;
+}

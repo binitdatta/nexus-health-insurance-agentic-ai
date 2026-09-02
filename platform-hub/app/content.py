@@ -1,0 +1,263 @@
+"""
+All the "content" for this hub lives here as plain Python data
+structures rather than scattered across templates. The navbar, the
+home page cards, and the training dropdown are all rendered FROM this
+module — add a chatbot or a training topic here once, and it shows up
+everywhere it needs to, with no risk of the navbar and the page
+content drifting out of sync.
+"""
+
+CHATBOTS = [
+    {"dept_code": "CLAIMS", "name": "Claims", "port": 5001,
+     "description": "Claim status lookups, denial reasons, appeals via human-in-the-loop.",
+     "icon": "bi-file-earmark-medical"},
+    {"dept_code": "PRIORAUTH", "name": "Prior Authorization", "port": 5002,
+     "description": "PA request status, urgency-tiered review, medical necessity policy Q&A.",
+     "icon": "bi-clipboard-check"},
+    {"dept_code": "NURSING", "name": "Nursing", "port": 5003,
+     "description": "Care management cases, acuity scoring, discharge planning.",
+     "icon": "bi-heart-pulse"},
+    {"dept_code": "CALLCENTER", "name": "Call Center", "port": 5004,
+     "description": "Call logs, CSAT tracking, escalation and identity-verification policy.",
+     "icon": "bi-telephone"},
+    {"dept_code": "BILLING", "name": "Billing", "port": 5005,
+     "description": "Invoice status, payment plans, write-off and grace-period policy.",
+     "icon": "bi-receipt"},
+    {"dept_code": "FACPROV", "name": "Facility & Providers", "port": 5006,
+     "description": "Provider directory, network status, credentialing workflow.",
+     "icon": "bi-hospital"},
+    {"dept_code": "ADJUDICATION", "name": "Adjudication", "port": 5007,
+     "description": "Rule-engine decisions, bundling edits, append-only adjudication history.",
+     "icon": "bi-diagram-3"},
+    {"dept_code": "FINANCE", "name": "Finance", "port": 5008,
+     "description": "GL transactions, vendor payment approvals, loss ratio reporting.",
+     "icon": "bi-cash-coin"},
+    {"dept_code": "MANAGEMENT", "name": "Management", "port": 5009,
+     "description": "Cross-department KPI reports, quarterly reviews, escalation policy.",
+     "icon": "bi-graph-up-arrow"},
+    {"dept_code": "MEMBERSVC", "name": "Member Services", "port": 5010,
+     "description": "ID card reissue, address changes, grievance intake, open enrollment.",
+     "icon": "bi-person-lines-fill"},
+]
+
+GATEWAY_PORT = 8000
+KEYCLOAK_PORT = 8080
+
+# --- Training topics — YouTube video candidates ---------------------
+# Each is a real thing that actually happened during this platform's
+# build, not a generic tutorial outline invented for this page.
+TRAINING_TOPICS = [
+    {
+        "slug": "langgraph-multi-department-platform",
+        "category": "Architecture",
+        "title": "Building a 10-Department Agentic AI Platform with LangGraph",
+        "length": "18-25 min",
+        "audience": "Developers evaluating LangGraph for a real multi-tenant product, not a toy demo",
+        "hook": "Ten department chatbots, one shared pipeline shape (classify → retrieve → synthesize → conditional HITL draft), and what stayed the same vs. what genuinely had to change per department.",
+        "outline": [
+            "Why a shared LangGraph pipeline shape across departments, and where it broke down (Facility & Providers has no member_id; Adjudication has no unique key at all)",
+            "Walk the actual graph: classify_intent → retrieve → synthesize → conditional hitl_draft, with the real Mermaid diagram this project generated",
+            "Why retrieval lives in each chatbot, not the central Gateway — and what that buys you (department-scoped SQL, no PHI in a shared service beyond what's explicitly retrieved)",
+            "The entity-key mismatch bug: LLM said 'claim_id', code expected 'claim_number' — and the fix (tolerant aliasing + explicit schema examples in the prompt)",
+            "Show the real test suite catching a real regression live on screen",
+        ],
+        "files_to_show": ["app/langgraph_flow/graph.py", "app/langgraph_flow/nodes.py", "tests/test_langgraph_flow.py"],
+    },
+    {
+        "slug": "keycloak-pkce-enterprise-ai",
+        "category": "Security",
+        "title": "Keycloak 26 PKCE for Enterprise AI Chatbots (with a Real Bug I Found)",
+        "length": "15-20 min",
+        "audience": "Backend/platform engineers adding real auth to an LLM-backed app for the first time",
+        "hook": "A bulk Keycloak realm import silently drops the built-in client scopes the admin console creates automatically — every token would have been missing preferred_username, email, and roles. Here's how that was caught before it shipped.",
+        "outline": [
+            "Why token relay (not a shared service credential) for department-scoped RBAC",
+            "The department claim + audience mapper pattern that ties a user's token to both their department and the central Gateway",
+            "The bug: importing a realm via kc.sh doesn't auto-create profile/email/roles scopes the way the admin console does — reproduced live",
+            "Minting a real signed token and running it through the actual application code (not a mock) to prove the fix",
+            "The negative case that matters most: a Claims token used against Billing — proving RBAC fails closed, not open",
+        ],
+        "files_to_show": ["realm-export.json", "generate_realm.py", "app/auth.py (Gateway)", "app/security/jwt_verify.py (chatbot)"],
+    },
+    {
+        "slug": "central-llm-gateway-pattern",
+        "category": "Architecture",
+        "title": "The Central LLM Gateway Pattern: One Chokepoint for Cost, Audit, and Control",
+        "length": "15-20 min",
+        "audience": "Teams with more than one LLM-backed feature who are tired of scattered API keys and no cost visibility",
+        "hook": "Ten chatbots, one place that ever talks to Anthropic — full request/response payloads, token counts, and cost logged to both a flat file and MySQL for every single call.",
+        "outline": [
+            "Why retrieval stays OUT of the Gateway — it only ever does the LLM call",
+            "Forced tool-use instead of prompt-engineered JSON: why, and the schema-passing fix that stops the LLM from inventing fields",
+            "Dual logging: what goes to the flat file vs. what goes to llm_call_log, and why both",
+            "Cost calculation from token counts — and why the pricing table is data, not code",
+            "Live demo: watching a real call show up in the dashboard in real time",
+        ],
+        "files_to_show": ["app/anthropic_client.py", "app/blueprints/llm_gateway.py", "app/prompts.py"],
+    },
+    {
+        "slug": "human-in-the-loop-ai-writes",
+        "category": "Architecture",
+        "title": "Human-in-the-Loop: Letting an LLM Propose Writes Without Letting It Write",
+        "length": "12-18 min",
+        "audience": "Anyone building an AI agent that needs to eventually touch a production database",
+        "hook": "The AI drafts a record. A human approves, edits, or rejects it. Two different real bugs — one where the LLM invented fields that didn't exist in the schema, one where a re-adjudicated claim would have silently overwritten history — shaped how this actually works.",
+        "outline": [
+            "Inline (in-chat) approval vs. the standalone review queue — same API, two surfaces",
+            "The schema-passing fix: why the Gateway now gets told the real column list before drafting anything",
+            "Update-vs-insert isn't universal: Adjudication always inserts (append-only decision log) because claim_number isn't unique there — a real, reasoned exception to the platform's own pattern",
+            "Required-field validation that blocks a bad approval instead of half-committing garbage",
+            "What the review queue actually shows a human, and why that matters as much as the API",
+        ],
+        "files_to_show": ["app/repository.py (approve_hitl_task)", "app/blueprints/hitl.py", "tests/test_hitl.py"],
+    },
+    {
+        "slug": "real-bugs-found-testing-llm-app",
+        "category": "Testing",
+        "title": "Real Bugs I Found Testing an LLM-Backed Enterprise App (Not Hypotheticals)",
+        "length": "20-25 min",
+        "audience": "Anyone who thinks 'testing an AI app' means mocking the LLM and calling it done",
+        "hook": "A SQL apostrophe bug that silently killed the last 3 statements in a file. A Flask session gotcha that looked like a broken RBAC check but wasn't. An anthropic/httpx version pin that broke on first real call. All caught before delivery, none of them hypothetical.",
+        "outline": [
+            "The httpx/anthropic version pin bug: caught by actually calling the real API, not just importing the SDK",
+            "The Flask nested-session-mutation bug: why a failing test isn't automatically an app bug",
+            "The unescaped-apostrophe SQL bug that broke silently mid-script — and the fix (scan before you run, not after you fail)",
+            "The claim_id vs. claim_number entity-key bug — caught via a live UI test, not a unit test",
+            "Why 'mock the LLM, test everything else for real' was the actual testing strategy, and what that looked like in practice",
+        ],
+        "files_to_show": ["tests/conftest.py (canned_gateway_responses fixture)", "fix_membersvc_knowledge_docs.sql"],
+    },
+    {
+        "slug": "hipaa-and-llms-what-changes",
+        "category": "Compliance",
+        "title": "HIPAA and LLMs: What Actually Changes in Your Architecture",
+        "length": "20-30 min",
+        "audience": "Engineers who've been told 'make sure it's HIPAA compliant' with no further guidance",
+        "hook": "A signed BAA is a legal precondition, not a technical checkbox — and it doesn't cover every API feature automatically. Here's what a real audit of a real architecture against the Security Rule actually looks like.",
+        "outline": [
+            "Why 'no BAA = no lawful basis to send PHI to a vendor' regardless of code quality",
+            "BAA coverage is per-feature, not blanket — checking what's actually covered, not assuming",
+            "Auditing this platform's own architecture: what passed (access control, audit trail structure) and what didn't (audit log confidentiality, encryption at rest, minimum-necessary filtering)",
+            "The three real options: managed API + BAA, self-hosted open model, or a hybrid with tokenization — and the honest trade-offs of each",
+            "What's cheap to fix vs. what's an organizational decision no amount of code resolves",
+        ],
+        "files_to_show": ["This platform's /hipaa-compliance page"],
+    },
+    {
+        "slug": "self-hosting-ollama-cost-reality",
+        "category": "Compliance",
+        "title": "Self-Hosting an Open-Source LLM with Ollama: What It Actually Costs",
+        "length": "15-20 min",
+        "audience": "Teams considering self-hosting for compliance reasons and wanting real numbers before committing",
+        "hook": "Renting a GPU to keep PHI off a third-party API sounds simple until you price it out — and the gap between the cheapest and most expensive way to rent the same H100 was over 8x in 2026.",
+        "outline": [
+            "Why self-hosting solves the BAA problem differently, not automatically better — you still own the compliance obligations",
+            "VRAM math: what model size actually fits on which GPU, quantized vs. not",
+            "Real, sourced 2026 pricing across specialist clouds vs. hyperscalers — and why the hyperscaler price is usually the wrong one to budget from",
+            "Always-on vs. business-hours-only cost — the difference is not small",
+            "The part nobody budgets for: re-validating structured tool-use output against whatever local model you pick, since this platform's whole Gateway design leans on forced tool-use",
+        ],
+        "files_to_show": ["This platform's /hipaa-compliance page (GPU cost table)"],
+    },
+    {
+        "slug": "rbac-for-ai-jwt-claims",
+        "category": "Security",
+        "title": "RBAC for AI Agents: Department-Scoped Access Control with JWT Claims",
+        "length": "12-15 min",
+        "audience": "Developers who've only ever done RBAC for CRUD apps, not for an AI agent making tool calls",
+        "hook": "The chatbot never decides who can see what — a signed JWT claim does, checked in two completely separate services, and proven with a real token, not a mock.",
+        "outline": [
+            "Why the department claim lives on the Keycloak side, not hardcoded in application logic",
+            "The azp (authorized party) check: binding a token to the specific client it was issued for, not just the user",
+            "Two independent checks in two services — the Gateway checks department, the chatbot checks azp — and why that redundancy is deliberate",
+            "Live demo: minting a real token for one department, watching it get correctly rejected against another",
+        ],
+        "files_to_show": ["app/auth.py (Gateway)", "app/security/jwt_verify.py", "app/security/decorators.py"],
+    },
+    {
+        "slug": "testing-strategy-mock-vs-real",
+        "category": "Testing",
+        "title": "Testing AI Agents: What to Mock and What to Run for Real",
+        "length": "15-20 min",
+        "audience": "Developers unsure where to draw the mocking line in an LLM-backed app's test suite",
+        "hook": "Every test in this platform mocks the LLM call itself but runs everything else — retrieval, auth, database writes — against real infrastructure. Here's why that split, not 'mock everything' or 'mock nothing.'",
+        "outline": [
+            "Why the LLM call is the one thing worth mocking (nondeterministic, costs money, not what you're actually testing)",
+            "Why retrieval SQL should run against a real seeded database, not a mock — with an example of a bug that only a real query would catch",
+            "The canned_gateway_responses fixture pattern: configurable per-test without a new mock for every scenario",
+            "Real Keycloak, real signed tokens, real JWKS validation — why auth is the other thing not worth mocking",
+            "The fresh-extraction-and-install test: proving a shipped zip actually works, not just the working directory it came from",
+        ],
+        "files_to_show": ["tests/conftest.py", "tests/test_langgraph_flow.py"],
+    },
+    {
+        "slug": "zero-to-ten-chatbots-scaling-a-pattern",
+        "category": "Architecture",
+        "title": "From Zero to 10 Chatbots: Scaling One Pattern Across Departments",
+        "length": "20-25 min",
+        "audience": "Anyone about to copy-paste a working service 9 more times and wondering what will go wrong",
+        "hook": "The same identity-string bug (a hardcoded logger name and OAuth salt) got copied forward and caught in every single one of nine copies. That's not bad luck — it's what copy-and-adapt always does if you don't build a checklist for it.",
+        "outline": [
+            "What genuinely stayed identical across all 10 chatbots (auth, Gateway client, dashboard, HITL commit/validate pattern)",
+            "What had to change every time, and why (domain columns, required fields, retrieval filters)",
+            "The recurring bug: why copying a working service doesn't mean copying a correct one",
+            "The real structural exceptions: no member_id (Facility & Providers), no unique key (Adjudication), a cross-department FK plus JSON column (Management)",
+            "What a pre-flight checklist for chatbot #11 should actually contain",
+        ],
+        "files_to_show": ["Any two department chatbots' repository.py side by side"],
+    },
+    {
+        "slug": "forced-tool-use-structured-output",
+        "category": "Architecture",
+        "title": "Structured Output from LLMs: Why Forced Tool-Use Beats Prompt Engineering",
+        "length": "10-15 min",
+        "audience": "Developers currently asking an LLM to 'please respond in JSON' and parsing it with regex",
+        "hook": "Every operation in this platform's Gateway forces a specific tool call instead of asking nicely for JSON in the response text — here's the reliability difference and what it costs you.",
+        "outline": [
+            "The failure mode of prompt-engineered JSON: free text wrapped around the JSON, inconsistent field names, occasional malformed output",
+            "Forcing tool_choice to a specific tool: what it guarantees and what it doesn't",
+            "The remaining failure mode even with forced tool-use: the LLM inventing field names not in your schema — and the fix (pass the real schema in, don't just hope)",
+            "Why this platform uses a fast/cheap model for classification and a stronger model for synthesis, and how tool-use cost differs between them",
+        ],
+        "files_to_show": ["app/prompts.py", "app/anthropic_client.py"],
+    },
+    {
+        "slug": "mysql-schema-multi-tenant-audit-logging",
+        "category": "Architecture",
+        "title": "Designing a MySQL Schema for Multi-Tenant AI Audit Logging",
+        "length": "12-18 min",
+        "audience": "Backend engineers designing the data layer under an AI feature for the first time",
+        "hook": "Every LLM call, every HTTP call, every human approval decision — logged to a schema designed to answer 'who did what, when, and what did it cost' months later, not just today.",
+        "outline": [
+            "departments as the tenancy anchor — why every log table and domain table carries dept_id",
+            "llm_call_log vs. http_call_log: what's the difference and why log both",
+            "hitl_task_queue: designing for both the inline-approval and standalone-queue UX from one table",
+            "cost_summary_daily as a rollup — why the dashboard doesn't aggregate raw logs on every page load",
+            "The one JSON column in the whole schema (kpi_summary) and why MySQL 8's JSON_EXTRACT made it worth using instead of more tables",
+        ],
+        "files_to_show": ["schema.sql"],
+    },
+]
+
+# --- GPU pricing reference for the HIPAA page -------------------------
+# Sourced July 2026 from multiple independently-tracked pricing pages
+# (Jarvislabs, Spheron, RunPod/Lambda comparison trackers, gpucloudcost.com).
+# On-demand, per-GPU, USD. These move — treat as a snapshot, not a quote,
+# and re-check before budgeting a real deployment.
+GPU_PRICING = [
+    {"gpu": "RTX 4090 24GB", "cheapest_ondemand": "$0.34/hr", "provider": "RunPod Community Cloud",
+     "hyperscaler_ref": "not offered by AWS/Azure/GCP as a discrete SKU",
+     "fits": "7B–13B models, 4-bit quantized"},
+    {"gpu": "A100 40GB", "cheapest_ondemand": "$1.99/hr", "provider": "Lambda Labs",
+     "hyperscaler_ref": "GCP a2-highgpu-1g ≈ $3.67/hr (whole VM)",
+     "fits": "13B–34B models, 4-bit quantized"},
+    {"gpu": "A100 80GB", "cheapest_ondemand": "$1.49/hr", "provider": "Jarvislabs / RunPod",
+     "hyperscaler_ref": "AWS/Azure ≈ $3.40–$3.43/hr (8-GPU instance only)",
+     "fits": "70B models, 4-bit quantized (e.g. Llama 3.3 70B)"},
+    {"gpu": "H100 SXM 80GB", "cheapest_ondemand": "$1.99–$2.69/hr", "provider": "RunPod",
+     "hyperscaler_ref": "AWS P5 ≈ $6.88/hr, Azure ND H100 v5 ≈ $12.29/hr",
+     "fits": "70B models at higher throughput, or larger MoE models quantized"},
+    {"gpu": "B200 SXM6", "cheapest_ondemand": "$5.29–$6.02/hr", "provider": "Lambda / Spheron",
+     "hyperscaler_ref": "AWS P6 ≈ $14.24/hr",
+     "fits": "Largest current open-weight models, headroom for higher concurrency"},
+]
