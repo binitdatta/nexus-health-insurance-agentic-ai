@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "building-10-department-agentic-ai-platform-langgraph",
+    "title": "Building a 10-Department Agentic AI Platform with LangGraph",
+    "route_function": "building_10_department_agentic_ai_platform_langgraph",
+    "template": "templates/training/building-10-department-agentic-ai-platform-langgraph.html"
+  },
+  {
+    "slug": "keycloak-26-pkce-enterprise-ai-chatbots",
+    "title": "Keycloak 26 PKCE for Enterprise AI Chatbots (with a Real Bug I Found)",
+    "route_function": "keycloak_26_pkce_enterprise_ai_chatbots",
+    "template": "templates/training/keycloak-26-pkce-enterprise-ai-chatbots.html"
+  },
+  {
+    "slug": "central-llm-gateway-pattern",
+    "title": "The Central LLM Gateway Pattern: One Chokepoint for Cost, Audit, and Control",
+    "route_function": "central_llm_gateway_pattern",
+    "template": "templates/training/central-llm-gateway-pattern.html"
+  },
+  {
+    "slug": "human-in-the-loop-ai-propose-humans-write",
+    "title": "Human-in-the-Loop: Letting an LLM Propose Writes Without Letting It Write",
+    "route_function": "human_in_the_loop_ai_propose_humans_write",
+    "template": "templates/training/human-in-the-loop-ai-propose-humans-write.html"
+  },
+  {
+    "slug": "real-bugs-found-testing-llm-app",
+    "title": "Real Bugs I Found Testing an LLM-Backed Enterprise App (Not Hypotheticals)",
+    "route_function": "real_bugs_found_testing_llm_app",
+    "template": "templates/training/real-bugs-found-testing-llm-app.html"
+  },
+  {
+    "slug": "hipaa-and-llms-what-changes",
+    "title": "HIPAA and LLMs: What Actually Changes in Your Architecture",
+    "route_function": "hipaa_and_llms_what_changes",
+    "template": "templates/training/hipaa-and-llms-what-changes.html"
+  },
+  {
+    "slug": "self-hosting-ollama-cost-reality",
+    "title": "Self-Hosting an Open-Source LLM with Ollama: What It Actually Costs",
+    "route_function": "self_hosting_ollama_cost_reality",
+    "template": "templates/training/self-hosting-ollama-cost-reality.html"
+  },
+  {
+    "slug": "rbac-ai-agents-department-scoped-access-jwt",
+    "title": "RBAC for AI Agents: Department-Scoped Access Control with JWT Claims",
+    "route_function": "rbac_ai_agents_department_scoped_access_jwt",
+    "template": "templates/training/rbac-ai-agents-department-scoped-access-jwt.html"
+  },
+  {
+    "slug": "testing-ai-agents-what-to-mock-real",
+    "title": "Testing AI Agents: What to Mock and What to Run for Real",
+    "route_function": "testing_ai_agents_what_to_mock_real",
+    "template": "templates/training/testing-ai-agents-what-to-mock-real.html"
+  },
+  {
+    "slug": "zero-to-10-chatbots-scaling-pattern",
+    "title": "From Zero to 10 Chatbots: Scaling One Pattern Across Departments",
+    "route_function": "zero_to_10_chatbots_scaling_pattern",
+    "template": "templates/training/zero-to-10-chatbots-scaling-pattern.html"
+  },
+  {
+    "slug": "structured-output-forced-tool-use",
+    "title": "Structured Output from LLMs: Why Forced Tool-Use Beats Prompt Engineering",
+    "route_function": "structured_output_forced_tool_use",
+    "template": "templates/training/structured-output-forced-tool-use.html"
+  },
+  {
+    "slug": "mysql-schema-multitenant-ai-audit-logging",
+    "title": "Designing a MySQL Schema for Multi-Tenant AI Audit Logging",
+    "route_function": "mysql_schema_multitenant_ai_audit_logging",
+    "template": "templates/training/mysql-schema-multitenant-ai-audit-logging.html"
+  }
+]

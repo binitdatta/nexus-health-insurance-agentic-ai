@@ -1,226 +1,1918 @@
 {% extends "base.html" %}
 {% block title %}HIPAA Compliance — Nexus Health Insurance AI Platform{% endblock %}
+
 {% block content %}
 
-<h2 class="mb-1"><i class="bi bi-shield-lock me-2"></i>HIPAA Compliance</h2>
-<p class="text-muted mb-4">
-  This page documents approaches, not a certification. It reflects an honest audit of this
-  platform's own architecture against the HIPAA Security Rule, plus real, sourced cost data for
-  the self-hosting alternative. <strong>Nothing here is legal advice</strong> — the BAA question
-  in particular needs your organization's actual counsel and Anthropic relationship, not a
-  document like this one.
-</p>
+<style>
+    .hipaa-page {
+        --hipaa-navy: #10204f;
+        --hipaa-blue: #3157ff;
+        --hipaa-blue-dark: #17379f;
+        --hipaa-blue-soft: #eef3ff;
+        --hipaa-red: #c62828;
+        --hipaa-red-dark: #8d1717;
+        --hipaa-red-soft: #fff3f3;
+        --hipaa-amber: #b87500;
+        --hipaa-amber-soft: #fff8e8;
+        --hipaa-green: #168447;
+        --hipaa-green-soft: #eef9f2;
+        --hipaa-purple-soft: #f7f2ff;
+        --hipaa-border: #dde5ff;
+        --hipaa-muted: #667085;
+    }
 
-<!-- ============ The core issue ============ -->
-<div class="card shadow-sm mb-4 border-danger border-opacity-25">
-  <div class="card-body">
-    <h5><i class="bi bi-exclamation-triangle text-danger me-2"></i>The issue no architecture fixes by itself</h5>
-    <p class="small mb-2">
-      A Business Associate Agreement is a <strong>legal precondition</strong>, not a technical
-      checkbox. Without one covering the specific API surface in use, sending PHI to any
-      third-party LLM API — however well the code around it is written — has no lawful basis
-      under HIPAA. Anthropic will sign a BAA for specifically enabled "HIPAA-ready" API
-      configurations, but coverage is <strong>per-feature, not blanket</strong>: confirm which
-      specific endpoints and tools your signed BAA actually covers before assuming forced
-      tool-use (which this platform's Gateway relies on for every operation) is included.
-    </p>
-    <p class="small mb-0 text-muted">
-      This is an organizational decision — who owns the Anthropic relationship, whether HIPAA-ready
-      configuration has been activated, what the signed BAA's covered-feature list actually says —
-      not something any of the three approaches below resolves on their own.
-    </p>
-  </div>
-</div>
+    /* ============================================================
+       HERO
+       ============================================================ */
 
-<!-- ============ Architecture audit recap ============ -->
-<div class="card shadow-sm mb-5">
-  <div class="card-header card-header-brand">This Platform's Own Architecture, Audited Honestly</div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-sm">
-        <thead><tr><th>Requirement</th><th>Status</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Access controls</td>
-            <td><span class="badge bg-success">Solid</span></td>
-            <td>Keycloak PKCE + department RBAC, verified with real signed tokens across all 10 chatbots</td>
-          </tr>
-          <tr>
-            <td>Audit controls</td>
-            <td><span class="badge bg-success">Solid</span></td>
-            <td><code>llm_call_log</code>/<code>http_call_log</code> capture who/what/when for every LLM call</td>
-          </tr>
-          <tr>
-            <td>Audit log confidentiality</td>
-            <td><span class="badge bg-warning text-dark">Gap</span></td>
-            <td>Those same logs duplicate PHI into a second location — needs the same access-control rigor as the domain tables, not currently enforced separately</td>
-          </tr>
-          <tr>
-            <td>Encryption in transit</td>
-            <td><span class="badge bg-warning text-dark">Gap (dev config)</span></td>
-            <td>Chatbot ↔ Gateway ↔ MySQL are plain HTTP in the current dev setup — needs TLS before touching real data</td>
-          </tr>
-          <tr>
-            <td>Encryption at rest</td>
-            <td><span class="badge bg-warning text-dark">Not addressed</span></td>
-            <td>No column-level or transparent encryption in <code>schema.sql</code> — an infrastructure-level decision, not enforced by the app</td>
-          </tr>
-          <tr>
-            <td>Minimum necessary</td>
-            <td><span class="badge bg-warning text-dark">Gap</span></td>
-            <td>Retrieval currently sends full rows including free-text notes fields regardless of whether the intent actually needs them</td>
-          </tr>
-        </tbody>
-      </table>
+    .hipaa-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.25rem;
+        padding: 2.75rem;
+        color: #fff;
+        background:
+            radial-gradient(
+                circle at 90% 0%,
+                rgba(255,255,255,.15),
+                transparent 30%
+            ),
+            linear-gradient(
+                120deg,
+                #071b55 0%,
+                #15399e 48%,
+                #3157ff 100%
+            );
+        box-shadow: 0 18px 42px rgba(20, 46, 135, .16);
+    }
+
+    .hipaa-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        border: 1px solid rgba(255,255,255,.25);
+        background: rgba(255,255,255,.10);
+        padding: .38rem .75rem;
+        border-radius: 999px;
+        font-size: .74rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    .hipaa-hero h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -.025em;
+    }
+
+    .hipaa-hero .lead {
+        max-width: 950px;
+        line-height: 1.7;
+        color: rgba(255,255,255,.91);
+    }
+
+    /* ============================================================
+       CRITICAL STATUS
+       ============================================================ */
+
+    .compliance-status {
+        margin-top: -1.4rem;
+        position: relative;
+        z-index: 4;
+    }
+
+    .status-panel {
+        background: #fff;
+        border: 1px solid #f2c1c1;
+        border-left: 6px solid var(--hipaa-red);
+        border-radius: 1rem;
+        padding: 1.35rem 1.5rem;
+        box-shadow: 0 10px 30px rgba(92, 21, 21, .08);
+    }
+
+    .status-icon {
+        width: 3rem;
+        height: 3rem;
+        min-width: 3rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: .75rem;
+        background: var(--hipaa-red-soft);
+        color: var(--hipaa-red);
+        font-size: 1.4rem;
+    }
+
+    .status-title {
+        color: var(--hipaa-red-dark);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    /* ============================================================
+       GENERAL COMPONENTS
+       ============================================================ */
+
+    .section-kicker {
+        color: var(--hipaa-blue);
+        font-size: .72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: .2rem;
+    }
+
+    .section-heading {
+        margin-bottom: 1.1rem;
+    }
+
+    .section-heading h2 {
+        color: #17214a;
+        font-size: 1.45rem;
+        font-weight: 750;
+        margin-bottom: .25rem;
+    }
+
+    .section-heading p {
+        color: var(--hipaa-muted);
+        margin-bottom: 0;
+        max-width: 900px;
+    }
+
+    .hipaa-card {
+        border: 1px solid var(--hipaa-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 6px 22px rgba(27, 48, 110, .06);
+    }
+
+    .hipaa-card-header {
+        padding: .9rem 1.2rem;
+        background:
+            linear-gradient(
+                90deg,
+                #132b79,
+                #3157ff
+            );
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .hipaa-callout-danger {
+        background: var(--hipaa-red-soft);
+        border-left: 5px solid var(--hipaa-red);
+        border-radius: .8rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .hipaa-callout-warning {
+        background: var(--hipaa-amber-soft);
+        border-left: 5px solid #e59b13;
+        border-radius: .8rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .hipaa-callout-info {
+        background: var(--hipaa-blue-soft);
+        border-left: 5px solid var(--hipaa-blue);
+        border-radius: .8rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .hipaa-callout-success {
+        background: var(--hipaa-green-soft);
+        border-left: 5px solid var(--hipaa-green);
+        border-radius: .8rem;
+        padding: 1rem 1.1rem;
+    }
+
+    /* ============================================================
+       POSTURE CARDS
+       ============================================================ */
+
+    .posture-card {
+        border: 1px solid var(--hipaa-border);
+        border-radius: .85rem;
+        height: 100%;
+        padding: 1rem;
+        background: #fff;
+    }
+
+    .posture-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: .65rem;
+        margin-bottom: .75rem;
+        background: var(--hipaa-blue-soft);
+        color: var(--hipaa-blue);
+        font-size: 1.15rem;
+    }
+
+    /* ============================================================
+       STATUS BADGES
+       ============================================================ */
+
+    .status-solid {
+        background: #dff5e7;
+        color: #176b39;
+        border: 1px solid #bce6cb;
+    }
+
+    .status-gap {
+        background: #fff1cc;
+        color: #7a5100;
+        border: 1px solid #f1d786;
+    }
+
+    .status-blocker {
+        background: #ffe3e3;
+        color: #9a1e1e;
+        border: 1px solid #f2b9b9;
+    }
+
+    .status-badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: .28rem .55rem;
+        font-size: .72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    /* ============================================================
+       APPROACH CARDS
+       ============================================================ */
+
+    .approach-card {
+        position: relative;
+        height: 100%;
+        border: 1px solid var(--hipaa-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition:
+            transform .16s ease,
+            box-shadow .16s ease;
+    }
+
+    .approach-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(29, 55, 140, .10);
+    }
+
+    .approach-bar {
+        height: 5px;
+        background: var(--hipaa-blue);
+    }
+
+    .approach-b .approach-bar {
+        background: #7545c7;
+    }
+
+    .approach-c .approach-bar {
+        background: #168447;
+    }
+
+    .approach-label {
+        font-size: .7rem;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        color: var(--hipaa-blue);
+    }
+
+    .approach-b .approach-label {
+        color: #7545c7;
+    }
+
+    .approach-c .approach-label {
+        color: var(--hipaa-green);
+    }
+
+    /* ============================================================
+       GATES
+       ============================================================ */
+
+    .gate-row {
+        display: flex;
+        gap: .85rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #edf0f6;
+    }
+
+    .gate-row:last-child {
+        border-bottom: 0;
+    }
+
+    .gate-icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        min-width: 2.4rem;
+        border-radius: .65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--hipaa-red-soft);
+        color: var(--hipaa-red);
+    }
+
+    .gate-title {
+        color: #1b2342;
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+    .gate-description {
+        color: var(--hipaa-muted);
+        font-size: .82rem;
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       TABLE
+       ============================================================ */
+
+    .hipaa-table th {
+        white-space: nowrap;
+        color: #293253;
+    }
+
+    .hipaa-table td {
+        vertical-align: middle;
+    }
+
+    .hipaa-table tbody tr:hover {
+        background: #f8faff;
+    }
+
+    /* ============================================================
+       RISK BOXES
+       ============================================================ */
+
+    .risk-number {
+        width: 2rem;
+        height: 2rem;
+        min-width: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--hipaa-red);
+        color: #fff;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+
+    @media (max-width: 767.98px) {
+        .hipaa-hero {
+            padding: 1.6rem;
+        }
+
+        .compliance-status {
+            margin-top: 1rem;
+        }
+    }
+</style>
+
+
+<div class="hipaa-page">
+
+    <!-- ========================================================
+         HERO
+         ======================================================== -->
+
+    <section class="hipaa-hero">
+
+        <div class="hipaa-eyebrow">
+            <i class="bi bi-shield-lock-fill"></i>
+            Security, Privacy & Compliance Architecture
+        </div>
+
+        <h1 class="mb-3">
+            HIPAA Compliance & AI Risk Posture
+        </h1>
+
+        <p class="lead mb-3">
+            This page documents architectural controls, known gaps,
+            contractual dependencies, and deployment alternatives for the
+            Nexus Health Insurance Agentic AI Platform.
+        </p>
+
+        <p class="mb-0 small" style="max-width: 1000px;">
+            <strong>This is not a HIPAA certification and is not legal advice.</strong>
+            HIPAA compliance is an organizational responsibility involving
+            technical safeguards, administrative safeguards, physical
+            safeguards, contracts, policies, risk analysis, workforce
+            practices, monitoring, and ongoing governance.
+        </p>
+
+    </section>
+
+
+    <!-- ========================================================
+         CURRENT DEPLOYMENT STATUS
+         ======================================================== -->
+
+    <div class="compliance-status mb-5">
+
+        <div class="status-panel">
+
+            <div class="d-flex gap-3 align-items-start">
+
+                <div class="status-icon">
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+                </div>
+
+                <div>
+
+                    <div class="status-title mb-1">
+                        CURRENT POSTURE: DO NOT PROCESS REAL PHI YET
+                    </div>
+
+                    <p class="mb-2">
+                        The current development configuration contains
+                        unresolved controls that must be addressed before this
+                        platform should process production electronic
+                        Protected Health Information (ePHI).
+                    </p>
+
+                    <p class="small text-muted mb-0">
+                        Key examples include the third-party BAA scope,
+                        application-to-application TLS, database encryption,
+                        audit-log protection, and minimum-necessary data
+                        handling.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
-</div>
 
-<!-- ============ Three approaches ============ -->
-<h4 class="mb-3">Three Approaches</h4>
-<div class="row g-3 mb-5">
 
-  <div class="col-lg-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-header bg-white fw-semibold">A. Managed API + Signed BAA</div>
-      <div class="card-body">
-        <p class="small">Anthropic's API under a signed, HIPAA-ready BAA covering the specific
-          features in use (confirm forced tool-use is included).</p>
-        <ul class="small mb-0">
-          <li class="text-success"><i class="bi bi-check-lg"></i> Lowest operational burden — no model hosting, no GPU fleet</li>
-          <li class="text-success"><i class="bi bi-check-lg"></i> Best model quality/reliability for structured tool-use, which this Gateway depends on</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> Contractually dependent on the BAA being real and current</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> Per-token API cost at scale</li>
-        </ul>
-      </div>
+    <!-- ========================================================
+         EXECUTIVE POSTURE
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">Executive View</div>
+            <h2>What HIPAA Means for This AI Architecture</h2>
+            <p>
+                A technically sophisticated LLM architecture can still create
+                serious compliance exposure if contracts, PHI handling,
+                logging, encryption, access, or operational governance are
+                incomplete.
+            </p>
+        </div>
+
+
+        <div class="row g-3">
+
+            <div class="col-md-6 col-xl-3">
+                <div class="posture-card">
+                    <div class="posture-icon">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+                    <h6 class="fw-bold">Identity Matters</h6>
+                    <p class="small text-muted mb-0">
+                        Keycloak provides a strong foundation for identifying
+                        users and enforcing department boundaries, but identity
+                        alone does not make the platform compliant.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+                <div class="posture-card">
+                    <div class="posture-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <h6 class="fw-bold">Contracts Matter</h6>
+                    <p class="small text-muted mb-0">
+                        If an external service receives ePHI as a business
+                        associate, appropriate contractual coverage must be in
+                        place before production PHI is disclosed.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+                <div class="posture-card">
+                    <div class="posture-icon">
+                        <i class="bi bi-database-lock"></i>
+                    </div>
+                    <h6 class="fw-bold">Data Location Matters</h6>
+                    <p class="small text-muted mb-0">
+                        PHI can exist not only in business tables but also in
+                        prompts, retrieved context, responses, HTTP logs,
+                        LLM logs, backups, exports, and monitoring systems.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-xl-3">
+                <div class="posture-card">
+                    <div class="posture-icon">
+                        <i class="bi bi-clipboard2-pulse"></i>
+                    </div>
+                    <h6 class="fw-bold">Operations Matter</h6>
+                    <p class="small text-muted mb-0">
+                        Patching, incident response, access review, key
+                        rotation, retention, backups, workforce procedures,
+                        and risk analysis remain ongoing responsibilities.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         THE BAA ISSUE
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="hipaa-callout-danger">
+
+            <div class="d-flex gap-3">
+
+                <div>
+                    <i class="bi bi-file-earmark-lock-fill fs-3 text-danger"></i>
+                </div>
+
+                <div>
+
+                    <h5 class="fw-bold mb-2">
+                        The Issue No Architecture Can Fix by Itself:
+                        The Business Associate Agreement
+                    </h5>
+
+                    <p class="small mb-2">
+                        A Business Associate Agreement is a
+                        <strong>contractual/legal prerequisite</strong>
+                        when a third-party business associate will create,
+                        receive, maintain, or transmit PHI on behalf of the
+                        covered entity or another business associate.
+                    </p>
+
+                    <p class="small mb-2">
+                        Therefore, excellent authentication, encrypted
+                        databases, network segmentation, audit logging, and
+                        secure coding do <strong>not</strong> independently
+                        authorize PHI disclosure to an external LLM provider.
+                    </p>
+
+                    <p class="small mb-2">
+                        For Anthropic, the organization must verify its own
+                        current contractual relationship, the HIPAA-ready
+                        configuration actually enabled, and the exact API
+                        features and tools covered by its signed agreement.
+                        Do not infer coverage merely because a provider
+                        advertises HIPAA-capable services.
+                    </p>
+
+                    <p class="small text-muted mb-0">
+                        This platform relies heavily on structured / forced
+                        tool-use. That capability must therefore be included
+                        within whatever contractual and technical configuration
+                        is approved for production use.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         ARCHITECTURE AUDIT
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">Architecture Audit</div>
+            <h2>This Platform's Current Security Posture</h2>
+            <p>
+                The purpose of this table is not to make the architecture look
+                compliant. It is to show clearly what is already strong and
+                what must still be remediated.
+            </p>
+        </div>
+
+
+        <div class="card hipaa-card">
+
+            <div class="hipaa-card-header">
+                <i class="bi bi-clipboard2-check me-2"></i>
+                Technical Safeguard Assessment
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm hipaa-table">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Requirement / Control</th>
+                                <th>Status</th>
+                                <th>Current State</th>
+                                <th>Production Requirement</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Access controls
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-solid">
+                                        Solid Foundation
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    Keycloak PKCE + department RBAC, verified
+                                    using signed tokens across all ten
+                                    department chatbots.
+                                </td>
+
+                                <td class="small">
+                                    Continue least-privilege reviews, role
+                                    lifecycle governance, joiner/mover/leaver
+                                    controls, and privileged-access monitoring.
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Audit controls
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-solid">
+                                        Implemented
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    <code>llm_call_log</code> and
+                                    <code>http_call_log</code> capture who,
+                                    what and when for LLM-related activity.
+                                </td>
+
+                                <td class="small">
+                                    Define retention, integrity protection,
+                                    restricted access, monitoring, alerting,
+                                    export controls, and investigation
+                                    procedures.
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Audit-log confidentiality
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-gap">
+                                        Gap
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    Full prompts and responses can duplicate PHI
+                                    into operational log tables.
+                                </td>
+
+                                <td class="small">
+                                    Treat AI logs as potentially sensitive PHI
+                                    stores. Restrict access, minimize content,
+                                    encrypt, establish retention, and avoid
+                                    unnecessary full-payload logging.
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Encryption in transit
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-blocker">
+                                        Production Blocker
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    Chatbot ↔ Gateway ↔ MySQL communication is
+                                    plain HTTP / unencrypted in the current
+                                    development configuration.
+                                </td>
+
+                                <td class="small">
+                                    Enforce TLS on all network paths carrying
+                                    authentication material, ePHI, prompts,
+                                    responses, retrieved context, and database
+                                    traffic.
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Encryption at rest
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-blocker">
+                                        Not Addressed
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    <code>schema.sql</code> does not enforce
+                                    application-level or transparent database
+                                    encryption.
+                                </td>
+
+                                <td class="small">
+                                    Implement an approved storage-encryption
+                                    strategy covering database files, logs,
+                                    backups, snapshots, exports, and keys.
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    Minimum necessary
+                                </td>
+
+                                <td>
+                                    <span class="status-badge status-gap">
+                                        Gap
+                                    </span>
+                                </td>
+
+                                <td class="small">
+                                    Retrieval currently sends entire rows,
+                                    including free-text notes, even when the
+                                    user intent may not require every field.
+                                </td>
+
+                                <td class="small">
+                                    Implement intent-aware field selection,
+                                    tokenization, redaction, context reduction,
+                                    and purpose-limited retrieval.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         NON-NEGOTIABLE PRODUCTION GATES
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">Deployment Gates</div>
+            <h2>Do Not Process Production PHI Until These Are Resolved</h2>
+            <p>
+                These controls should be treated as release gates, not items
+                to address after production deployment.
+            </p>
+        </div>
+
+
+        <div class="card hipaa-card">
+
+            <div class="card-body px-4">
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-file-earmark-lock"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            1. Confirm Contractual Coverage
+                        </div>
+                        <div class="gate-description">
+                            Verify the signed BAA and approved service
+                            configuration for every third party that will
+                            create, receive, maintain, or transmit ePHI.
+                            Confirm the exact LLM API capabilities in scope.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-lock"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            2. Encrypt Every Production Network Path
+                        </div>
+                        <div class="gate-description">
+                            Browser, chatbot, Keycloak, Gateway, database,
+                            management interfaces, log collectors, backups,
+                            and administrative connections must use approved
+                            encrypted transport.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-device-ssd"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            3. Protect ePHI at Rest
+                        </div>
+                        <div class="gate-description">
+                            Protect primary database storage, snapshots,
+                            backups, exports, log stores, temporary files,
+                            object storage, and any other persistence layer
+                            that may contain ePHI.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-journal-lock"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            4. Treat AI Logs as PHI-Capable Data Stores
+                        </div>
+                        <div class="gate-description">
+                            Prompts and model responses can contain the same
+                            sensitive information as production business
+                            tables. Logging must therefore follow equivalent
+                            access, encryption, retention, and monitoring
+                            controls.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-funnel"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            5. Implement Minimum-Necessary Context
+                        </div>
+                        <div class="gate-description">
+                            Do not send complete database rows to an LLM merely
+                            because they are convenient to retrieve. Select only
+                            the attributes necessary to perform the current
+                            authorized operation.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-key"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            6. Establish Production Secret and Key Management
+                        </div>
+                        <div class="gate-description">
+                            API credentials, signing keys, database passwords,
+                            encryption keys, Keycloak secrets, and certificates
+                            require managed storage, controlled access,
+                            rotation, revocation, and auditability.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            7. Define Data Retention and Secure Disposal
+                        </div>
+                        <div class="gate-description">
+                            Establish explicit retention periods for chat
+                            transcripts, prompts, responses, HTTP logs, LLM
+                            logs, HITL records, backups, and exported reports.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-life-preserver"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            8. Establish Incident Response and Breach Procedures
+                        </div>
+                        <div class="gate-description">
+                            Technical logging is useful only if the organization
+                            also defines who investigates suspected exposure,
+                            how access is revoked, how evidence is preserved,
+                            and how legal/privacy teams are engaged.
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="gate-row">
+                    <div class="gate-icon">
+                        <i class="bi bi-clipboard2-data"></i>
+                    </div>
+                    <div>
+                        <div class="gate-title">
+                            9. Complete Formal Security Risk Analysis
+                        </div>
+                        <div class="gate-description">
+                            Architecture review is not a substitute for an
+                            organizational HIPAA Security Rule risk analysis.
+                            Risks, likelihood, impact, controls, owners, and
+                            remediation decisions should be formally recorded.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         AI-SPECIFIC RISK
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">AI-Specific Risk</div>
+            <h2>Where PHI Can Appear in an LLM Application</h2>
+            <p>
+                Protecting the source database is not enough. AI applications
+                create additional copies and representations of sensitive
+                information.
+            </p>
+        </div>
+
+
+        <div class="row g-3">
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">1</span>
+                        <div>
+                            <strong>Retrieved Context</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                Business rows and knowledge documents selected
+                                by RAG can contain member identifiers,
+                                clinical data, financial data, notes, and other
+                                sensitive information.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">2</span>
+                        <div>
+                            <strong>Prompt Construction</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                Retrieved PHI may be combined with user
+                                questions, instructions, system prompts, and
+                                tool schemas before being sent for inference.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">3</span>
+                        <div>
+                            <strong>Model Responses</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                A response can reproduce or transform PHI even
+                                if the application never explicitly stores the
+                                original database row.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">4</span>
+                        <div>
+                            <strong>Operational Logging</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                Logging complete prompts and responses can
+                                unintentionally create a second large PHI
+                                repository outside the department domain table.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">5</span>
+                        <div>
+                            <strong>HITL Drafts</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                Human-review queues can persist model-generated
+                                records containing PHI and therefore require
+                                appropriate authorization and lifecycle
+                                controls.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="hipaa-callout-warning h-100">
+
+                    <div class="d-flex gap-2">
+                        <span class="risk-number">6</span>
+                        <div>
+                            <strong>Telemetry and Troubleshooting</strong>
+                            <p class="small text-muted mb-0 mt-1">
+                                Debug traces, exception logs, screenshots,
+                                support tickets, APM tools, exports, and
+                                developer diagnostics can become secondary
+                                disclosure paths.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         THREE APPROACHES
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">Deployment Strategies</div>
+            <h2>Three Approaches</h2>
+            <p>
+                These choices primarily change where inference occurs and who
+                operates the model. None eliminates the organization's HIPAA
+                responsibilities.
+            </p>
+        </div>
+
+
+        <div class="row g-4">
+
+            <!-- A -->
+            <div class="col-lg-4">
+
+                <div class="card approach-card">
+
+                    <div class="approach-bar"></div>
+
+                    <div class="card-body p-4">
+
+                        <div class="approach-label mb-2">
+                            Approach A
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Managed API + Signed BAA
+                        </h5>
+
+                        <p class="small text-muted">
+                            Use Anthropic's API under an appropriately executed
+                            HIPAA-ready contractual arrangement covering the
+                            specific capabilities this platform uses.
+                        </p>
+
+
+                        <hr>
+
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Lowest operational burden — no GPU fleet or model
+                            hosting.
+                        </div>
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Strong model capability for structured tool-use.
+                        </div>
+
+                        <div class="small mb-2 text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Contractual coverage must be confirmed and kept
+                            current.
+                        </div>
+
+                        <div class="small text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Usage remains subject to external-provider pricing
+                            and approved-service constraints.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- B -->
+            <div class="col-lg-4">
+
+                <div class="card approach-card approach-b">
+
+                    <div class="approach-bar"></div>
+
+                    <div class="card-body p-4">
+
+                        <div class="approach-label mb-2">
+                            Approach B
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Self-Hosted Open Model
+                        </h5>
+
+                        <p class="small text-muted">
+                            Run an open-weight model such as Llama or Qwen
+                            through Ollama or another inference stack in a
+                            controlled computing environment.
+                        </p>
+
+
+                        <hr>
+
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Model inference can remain inside infrastructure
+                            controlled by your organization.
+                        </div>
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Infrastructure cost can be more predictable than
+                            per-token pricing.
+                        </div>
+
+                        <div class="small mb-2 text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            You inherit model-serving security, patching,
+                            monitoring, availability and capacity obligations.
+                        </div>
+
+                        <div class="small text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Tool-use reliability must be independently tested.
+                        </div>
+
+
+                        <div class="hipaa-callout-warning mt-3">
+
+                            <div class="small">
+                                <strong>Important:</strong>
+                                self-hosting the model does not necessarily
+                                remove all BAA requirements. A cloud/IaaS
+                                provider storing or processing ePHI may itself
+                                be part of the HIPAA business-associate chain.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- C -->
+            <div class="col-lg-4">
+
+                <div class="card approach-card approach-c">
+
+                    <div class="approach-bar"></div>
+
+                    <div class="card-body p-4">
+
+                        <div class="approach-label mb-2">
+                            Approach C
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Hybrid: Minimize + Managed API
+                        </h5>
+
+                        <p class="small text-muted">
+                            Tokenize identifiers, reduce free text, select
+                            intent-specific fields, and use the managed API
+                            under appropriate contractual coverage.
+                        </p>
+
+
+                        <hr>
+
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Reduces unnecessary disclosure of PHI.
+                        </div>
+
+                        <div class="small mb-2 text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Fits naturally with this platform because
+                            <code>retrieve_node</code> already knows the user
+                            intent.
+                        </div>
+
+                        <div class="small mb-2 text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Clinical and resolution notes can be difficult to
+                            redact safely and consistently.
+                        </div>
+
+                        <div class="small text-danger">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Minimization is defense-in-depth, not a substitute
+                            for required contractual protection.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         MINIMUM NECESSARY
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="hipaa-callout-info">
+
+            <div class="row g-3 align-items-center">
+
+                <div class="col-lg-8">
+
+                    <h5 class="fw-bold mb-2">
+                        Minimum Necessary Should Be an Architectural Rule
+                    </h5>
+
+                    <p class="small mb-2">
+                        Today, retrieval can return a complete row and forward
+                        that entire row to the LLM. A production design should
+                        instead determine which fields are actually required
+                        for the user's specific intent.
+                    </p>
+
+                    <p class="small mb-0">
+                        For example, a question about claim status may require
+                        claim number, status, date and reason code — but not a
+                        full clinical-note field merely because that column is
+                        present in the same table.
+                    </p>
+
+                </div>
+
+
+                <div class="col-lg-4">
+
+                    <div class="bg-white border rounded-3 p-3 small">
+
+                        <div class="fw-bold mb-2">
+                            Better pattern
+                        </div>
+
+                        <code>intent</code>
+                        <i class="bi bi-arrow-right mx-1"></i>
+                        <code>allowed fields</code>
+
+                        <br>
+
+                        <span class="text-muted">
+                            rather than
+                        </span>
+
+                        <br>
+
+                        <code>SELECT *</code>
+                        <i class="bi bi-arrow-right mx-1"></i>
+                        <code>LLM</code>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         SELF HOSTING DEEP DIVE
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+            <div class="section-kicker">Approach B Deep Dive</div>
+            <h2>What Self-Hosting Actually Requires</h2>
+            <p>
+                Keeping inference inside your environment changes the risk
+                model, but also turns model serving into infrastructure that
+                your organization must operate securely and reliably.
+            </p>
+        </div>
+
+
+        <!-- MODEL SIZE -->
+
+        <div class="card hipaa-card mb-4">
+
+            <div class="hipaa-card-header">
+                <i class="bi bi-gpu-card me-2"></i>
+                Model Size vs. GPU Requirement
+            </div>
+
+            <div class="card-body">
+
+                <p class="small text-muted">
+                    Approximate VRAM requirements for 4-bit quantized
+                    inference — a practical method for running large models
+                    without a large multi-GPU cluster.
+                </p>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm hipaa-table">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Model Class</th>
+                                <th>Example</th>
+                                <th>Quantized VRAM</th>
+                                <th>Typical Fit</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>7B–13B</td>
+                                <td>Llama 3.1 8B, Mistral 7B</td>
+                                <td>~8–12 GB</td>
+                                <td>RTX 4090 24GB</td>
+                            </tr>
+
+                            <tr>
+                                <td>13B–34B</td>
+                                <td>Qwen 2.5 32B</td>
+                                <td>~20–24 GB</td>
+                                <td>A100 40GB</td>
+                            </tr>
+
+                            <tr>
+                                <td>70B</td>
+                                <td>Llama 3.3 70B</td>
+                                <td>~40–48 GB</td>
+                                <td>A100 80GB / H100</td>
+                            </tr>
+
+                            <tr>
+                                <td>MoE, large</td>
+                                <td>Mixtral 8x22B</td>
+                                <td>~70–90 GB</td>
+                                <td>H100 80GB / B200</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="hipaa-callout-warning mt-3">
+
+                    <div class="small">
+                        For this platform's structured tool-use workload,
+                        Llama 3.3 70B or Qwen 2.5 72B are reasonable
+                        evaluation candidates. Smaller models may be less
+                        expensive but should not be assumed to provide
+                        equivalent tool-selection or structured-output
+                        reliability. Measure it.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GPU PRICING -->
+
+        <div class="card hipaa-card mb-4">
+
+            <div class="hipaa-card-header">
+                <i class="bi bi-cash-stack me-2"></i>
+                Cloud GPU Pricing — On-Demand, Per GPU, USD
+            </div>
+
+            <div class="card-body">
+
+                <p class="small text-muted">
+                    Pricing snapshot sourced July 2026 from multiple
+                    independently tracked pricing sources. GPU prices move
+                    rapidly and may vary several-fold between specialist
+                    providers and hyperscalers for similar hardware.
+                    Treat these numbers as planning inputs, not vendor quotes.
+                </p>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm gpu-table hipaa-table">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>GPU</th>
+                                <th>Cheapest On-Demand</th>
+                                <th>Provider</th>
+                                <th>Hyperscaler Reference</th>
+                                <th>Fits</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in gpu_pricing %}
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    {{ row.gpu }}
+                                </td>
+
+                                <td>
+                                    {{ row.cheapest_ondemand }}
+                                </td>
+
+                                <td>
+                                    {{ row.provider }}
+                                </td>
+
+                                <td class="small text-muted">
+                                    {{ row.hyperscaler_ref }}
+                                </td>
+
+                                <td class="small">
+                                    {{ row.fits }}
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MONTHLY COST -->
+
+        <div class="card hipaa-card">
+
+            <div class="hipaa-card-header">
+                <i class="bi bi-calculator me-2"></i>
+                Monthly Cost — A100 80GB Example
+            </div>
+
+            <div class="card-body">
+
+                <p class="small text-muted">
+                    Using the $1.49/hour specialist-cloud rate from the current
+                    pricing dataset as an illustrative example for a single
+                    A100 80GB running a 70B-class quantized model.
+                </p>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm hipaa-table">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Usage Pattern</th>
+                                <th>Hours / Month</th>
+                                <th>Approx. Monthly Cost</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>
+                                    Always-on (24/7)
+                                </td>
+                                <td>
+                                    ~730
+                                </td>
+                                <td class="fw-semibold">
+                                    ~$1,089
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    Business hours only
+                                    (12 hr × 22 business days)
+                                </td>
+                                <td>
+                                    264
+                                </td>
+                                <td class="fw-semibold">
+                                    ~$393
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    Business hours with scale-to-zero
+                                </td>
+                                <td>
+                                    264 + startup overhead
+                                </td>
+                                <td class="fw-semibold">
+                                    ~$393–$450
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <p class="small text-muted mb-0">
+                    For reference, purchasing an A100 80GB may run roughly
+                    $7,000–$15,000 new or $4,000–$9,000 used. At an illustrative
+                    always-on rental cost near $1,089/month, rental spending
+                    reaches the cited new-hardware range in roughly
+                    6.4–13.8 months and the cited used-hardware range in
+                    roughly 3.7–8.3 months. Hardware purchase economics alone
+                    do not include power, cooling, redundancy, support,
+                    staffing, spare capacity, lifecycle management, or
+                    security operations.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         SELF HOSTING RESPONSIBILITY
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="hipaa-callout-danger">
+
+            <h5 class="fw-bold">
+                Self-Hosting Does Not Mean "HIPAA Problem Solved"
+            </h5>
+
+            <p class="small mb-3">
+                Moving the model inside your own environment can remove one
+                external LLM-provider dependency, but it makes your
+                organization directly responsible for substantially more of
+                the operational security stack.
+            </p>
+
+
+            <div class="row g-2 small">
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    GPU host hardening
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    OS and driver patching
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Container / inference-runtime security
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Network segmentation
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Identity and administrative access
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Model artifact provenance
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Vulnerability management
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Capacity and availability
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Encryption and key management
+                </div>
+
+                <div class="col-md-6">
+                    <i class="bi bi-check2-square me-1"></i>
+                    Monitoring and incident response
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         HUMAN IN LOOP
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="hipaa-callout-success">
+
+            <h5 class="fw-bold">
+                Human-in-the-Loop Is an Important Safety Control
+            </h5>
+
+            <p class="small mb-2">
+                This platform already contains an important control:
+                AI-generated create/update operations are drafted before they
+                are committed. The user can inspect, edit, approve, or reject
+                the proposed record.
+            </p>
+
+            <p class="small mb-0">
+                That reduces autonomous-write risk, but the HITL workflow
+                itself must still enforce user authorization, maintain audit
+                history, protect any PHI inside the pending task, and prevent
+                unauthorized reviewers from approving another department's
+                proposed action.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         FINAL MESSAGE
+         ======================================================== -->
+
+    <section class="mb-4">
+
+        <div class="card border-0 shadow-sm"
+             style="
+                border-radius: 1rem;
+                background:
+                    linear-gradient(
+                        135deg,
+                        #f5f7ff,
+                        #ffffff
+                    );
+             ">
+
+            <div class="card-body p-4">
+
+                <div class="row g-4 align-items-center">
+
+                    <div class="col-lg-8">
+
+                        <div class="section-kicker">
+                            Final Architectural Principle
+                        </div>
+
+                        <h4 class="fw-bold mb-2">
+                            HIPAA Compliance Is a System Property,
+                            Not an LLM Feature
+                        </h4>
+
+                        <p class="text-muted mb-0">
+                            Keycloak, TLS, encryption, a BAA, RAG minimization,
+                            HITL, audit logging, self-hosted models, and secure
+                            databases are individual controls. None should be
+                            presented as "HIPAA compliance" by itself. The
+                            compliance posture emerges from the complete
+                            technical, administrative, contractual, and
+                            operational system—and from how that system is
+                            continuously governed.
+                        </p>
+
+                    </div>
+
+
+                    <div class="col-lg-4">
+
+                        <div class="hipaa-callout-warning small">
+
+                            <strong>
+                                Production decision:
+                            </strong>
+
+                            <br>
+
+                            Process real PHI only after the responsible
+                            security, privacy, compliance, legal, and business
+                            owners formally accept the architecture and its
+                            residual risks.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         TRAINING LINKS
+         ======================================================== -->
+
+    <div class="alert alert-light border small mb-0">
+
+        <i class="bi bi-camera-reels me-2 text-primary"></i>
+
+        <strong>Related training:</strong>
+
+        <a href="{{ url_for(
+            'hub.training_topic',
+            slug='self-hosting-ollama-cost-reality'
+        ) }}">
+            Self-Hosting an Open-Source LLM with Ollama:
+            What It Actually Costs
+        </a>
+
+        <span class="mx-1">•</span>
+
+        <a href="{{ url_for(
+            'hub.training_topic',
+            slug='hipaa-and-llms-what-changes'
+        ) }}">
+            HIPAA and LLMs:
+            What Actually Changes in Your Architecture
+        </a>
+
     </div>
-  </div>
 
-  <div class="col-lg-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-header bg-white fw-semibold">B. Self-Hosted Open Model (Ollama)</div>
-      <div class="card-body">
-        <p class="small">Run an open-weight model (Llama 3.3 70B, Qwen 2.5 72B) via Ollama on a
-          GPU VM your organization controls.</p>
-        <ul class="small mb-0">
-          <li class="text-success"><i class="bi bi-check-lg"></i> PHI never leaves infrastructure you control — no third-party LLM BAA needed for the model itself</li>
-          <li class="text-success"><i class="bi bi-check-lg"></i> Fixed, predictable infrastructure cost instead of per-token billing</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> You now own every other Security Rule obligation directly — the VM, its patching, its access control</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> Forced tool-use reliability must be re-validated per model — not guaranteed to match Claude's</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-header bg-white fw-semibold">C. Hybrid: Minimize + Managed API</div>
-      <div class="card-body">
-        <p class="small">Tokenize structured identifiers before they reach the Gateway, redact/limit
-          free-text fields by intent, keep the managed API with a BAA as defense-in-depth.</p>
-        <ul class="small mb-0">
-          <li class="text-success"><i class="bi bi-check-lg"></i> Reduces what a BAA has to cover in the first place</li>
-          <li class="text-success"><i class="bi bi-check-lg"></i> Cheap wins available today: this platform's own <code>retrieve_node</code> already knows which fields an intent needs</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> Free-text fields (clinical notes, resolution notes) are hard to fully redact reliably</li>
-          <li class="text-danger"><i class="bi bi-x-lg"></i> Still needs a BAA behind it — minimization is defense-in-depth, not a substitute</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ============ Self-hosting deep dive ============ -->
-<h4 class="mb-3">Approach B in Detail: What Self-Hosting Actually Costs</h4>
-
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h6>Model size vs. GPU requirement</h6>
-    <p class="small text-muted">
-      Approximate VRAM needed for 4-bit quantized inference — the practical way to run a model
-      this size on a single GPU rather than a multi-GPU cluster.
-    </p>
-    <div class="table-responsive">
-      <table class="table table-sm">
-        <thead class="table-primary"><tr><th>Model class</th><th>Example</th><th>Quantized VRAM</th><th>Fits on</th></tr></thead>
-        <tbody>
-          <tr><td>7B–13B</td><td>Llama 3.1 8B, Mistral 7B</td><td>~8–12 GB</td><td>RTX 4090 24GB</td></tr>
-          <tr><td>13B–34B</td><td>Qwen 2.5 32B</td><td>~20–24 GB</td><td>A100 40GB</td></tr>
-          <tr><td>70B</td><td>Llama 3.3 70B</td><td>~40–48 GB</td><td>A100 80GB / H100</td></tr>
-          <tr><td>MoE, large</td><td>Mixtral 8x22B</td><td>~70–90 GB</td><td>H100 80GB / B200</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="small text-muted mb-0">
-      For this platform's use case — structured tool-use across ten department chatbots — Llama
-      3.3 70B or Qwen 2.5 72B (both fit on a single A100 80GB quantized) are the realistic starting
-      points. Smaller models are cheaper to run but less reliable at the forced tool-use pattern
-      the Gateway depends on; that reliability gap needs to be measured directly, not assumed.
-    </p>
-  </div>
-</div>
-
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h6>Cloud GPU pricing (on-demand, per-GPU, USD)</h6>
-    <p class="small text-muted">
-      Sourced July 2026 from multiple independently-tracked pricing pages. GPU pricing moves fast
-      and varies 3–5x between specialist clouds and hyperscalers for identical hardware — treat this
-      as a snapshot to reason from, not a quote to budget against without re-checking.
-    </p>
-    <div class="table-responsive">
-      <table class="table table-sm gpu-table">
-        <thead class="table-primary">
-          <tr><th>GPU</th><th>Cheapest on-demand</th><th>Provider</th><th>Hyperscaler reference</th><th>Fits</th></tr>
-        </thead>
-        <tbody>
-          {% for row in gpu_pricing %}
-          <tr>
-            <td class="fw-semibold">{{ row.gpu }}</td>
-            <td>{{ row.cheapest_ondemand }}</td>
-            <td>{{ row.provider }}</td>
-            <td class="small text-muted">{{ row.hyperscaler_ref }}</td>
-            <td class="small">{{ row.fits }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<div class="card shadow-sm mb-5">
-  <div class="card-body">
-    <h6>Monthly cost: the realistic option for this platform's scale (A100 80GB)</h6>
-    <p class="small text-muted">
-      A100 80GB at the cheapest verified specialist-cloud on-demand rate, $1.49/hr — runs Llama
-      3.3 70B quantized, the realistic model class for replacing this Gateway's current workload.
-    </p>
-    <div class="table-responsive">
-      <table class="table table-sm">
-        <thead class="table-primary"><tr><th>Usage pattern</th><th>Hours/month</th><th>Monthly cost</th></tr></thead>
-        <tbody>
-          <tr><td>Always-on (24/7)</td><td>~730</td><td class="fw-semibold">~$1,089</td></tr>
-          <tr><td>Business hours only (12hr × 22 business days)</td><td>264</td><td class="fw-semibold">~$393</td></tr>
-          <tr><td>Business hours, weekdays, auto-scaled to zero overnight</td><td>264 + spin-up overhead</td><td class="fw-semibold">~$393–$450</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="small text-muted mb-0">
-      For reference: buying an A100 80GB outright runs roughly $7,000–$15,000 new (or
-      $4,000–$9,000 used) — at the always-on rental rate above (~$1,089/month), renting crosses
-      the new-hardware purchase price in roughly 6.4–13.8 months, or 3.7–8.3 months against the
-      used-hardware price range. Whether renting or buying makes sense depends entirely on how
-      long the deployment is expected to run and whether your organization wants the operational
-      burden of owning physical hardware at all — a decision this document does not make for you.
-    </p>
-  </div>
-</div>
-
-<div class="alert alert-light border small">
-  <i class="bi bi-info-circle me-1"></i>
-  Related training topic: <a href="{{ url_for('hub.training_topic', slug='self-hosting-ollama-cost-reality') }}">Self-Hosting an Open-Source LLM with Ollama: What It Actually Costs</a>
-  and <a href="{{ url_for('hub.training_topic', slug='hipaa-and-llms-what-changes') }}">HIPAA and LLMs: What Actually Changes in Your Architecture</a>.
 </div>
 
 {% endblock %}

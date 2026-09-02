@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}HIPAA Compliance — Nexus Health Insurance AI Platform{% endblock %}
+{% block content %}
+
+<h2 class="mb-1"><i class="bi bi-shield-lock me-2"></i>HIPAA Compliance</h2>
+<p class="text-muted mb-4">
+  This page documents approaches, not a certification. It reflects an honest audit of this
+  platform's own architecture against the HIPAA Security Rule, plus real, sourced cost data for
+  the self-hosting alternative. <strong>Nothing here is legal advice</strong> — the BAA question
+  in particular needs your organization's actual counsel and Anthropic relationship, not a
+  document like this one.
+</p>
+
+<!-- ============ The core issue ============ -->
+<div class="card shadow-sm mb-4 border-danger border-opacity-25">
+  <div class="card-body">
+    <h5><i class="bi bi-exclamation-triangle text-danger me-2"></i>The issue no architecture fixes by itself</h5>
+    <p class="small mb-2">
+      A Business Associate Agreement is a <strong>legal precondition</strong>, not a technical
+      checkbox. Without one covering the specific API surface in use, sending PHI to any
+      third-party LLM API — however well the code around it is written — has no lawful basis
+      under HIPAA. Anthropic will sign a BAA for specifically enabled "HIPAA-ready" API
+      configurations, but coverage is <strong>per-feature, not blanket</strong>: confirm which
+      specific endpoints and tools your signed BAA actually covers before assuming forced
+      tool-use (which this platform's Gateway relies on for every operation) is included.
+    </p>
+    <p class="small mb-0 text-muted">
+      This is an organizational decision — who owns the Anthropic relationship, whether HIPAA-ready
+      configuration has been activated, what the signed BAA's covered-feature list actually says —
+      not something any of the three approaches below resolves on their own.
+    </p>
+  </div>
+</div>
+
+<!-- ============ Architecture audit recap ============ -->
+<div class="card shadow-sm mb-5">
+  <div class="card-header card-header-brand">This Platform's Own Architecture, Audited Honestly</div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>Requirement</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Access controls</td>
+            <td><span class="badge bg-success">Solid</span></td>
+            <td>Keycloak PKCE + department RBAC, verified with real signed tokens across all 10 chatbots</td>
+          </tr>
+          <tr>
+            <td>Audit controls</td>
+            <td><span class="badge bg-success">Solid</span></td>
+            <td><code>llm_call_log</code>/<code>http_call_log</code> capture who/what/when for every LLM call</td>
+          </tr>
+          <tr>
+            <td>Audit log confidentiality</td>
+            <td><span class="badge bg-warning text-dark">Gap</span></td>
+            <td>Those same logs duplicate PHI into a second location — needs the same access-control rigor as the domain tables, not currently enforced separately</td>
+          </tr>
+          <tr>
+            <td>Encryption in transit</td>
+            <td><span class="badge bg-warning text-dark">Gap (dev config)</span></td>
+            <td>Chatbot ↔ Gateway ↔ MySQL are plain HTTP in the current dev setup — needs TLS before touching real data</td>
+          </tr>
+          <tr>
+            <td>Encryption at rest</td>
+            <td><span class="badge bg-warning text-dark">Not addressed</span></td>
+            <td>No column-level or transparent encryption in <code>schema.sql</code> — an infrastructure-level decision, not enforced by the app</td>
+          </tr>
+          <tr>
+            <td>Minimum necessary</td>
+            <td><span class="badge bg-warning text-dark">Gap</span></td>
+            <td>Retrieval currently sends full rows including free-text notes fields regardless of whether the intent actually needs them</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Three approaches ============ -->
+<h4 class="mb-3">Three Approaches</h4>
+<div class="row g-3 mb-5">
+
+  <div class="col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-white fw-semibold">A. Managed API + Signed BAA</div>
+      <div class="card-body">
+        <p class="small">Anthropic's API under a signed, HIPAA-ready BAA covering the specific
+          features in use (confirm forced tool-use is included).</p>
+        <ul class="small mb-0">
+          <li class="text-success"><i class="bi bi-check-lg"></i> Lowest operational burden — no model hosting, no GPU fleet</li>
+          <li class="text-success"><i class="bi bi-check-lg"></i> Best model quality/reliability for structured tool-use, which this Gateway depends on</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> Contractually dependent on the BAA being real and current</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> Per-token API cost at scale</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-white fw-semibold">B. Self-Hosted Open Model (Ollama)</div>
+      <div class="card-body">
+        <p class="small">Run an open-weight model (Llama 3.3 70B, Qwen 2.5 72B) via Ollama on a
+          GPU VM your organization controls.</p>
+        <ul class="small mb-0">
+          <li class="text-success"><i class="bi bi-check-lg"></i> PHI never leaves infrastructure you control — no third-party LLM BAA needed for the model itself</li>
+          <li class="text-success"><i class="bi bi-check-lg"></i> Fixed, predictable infrastructure cost instead of per-token billing</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> You now own every other Security Rule obligation directly — the VM, its patching, its access control</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> Forced tool-use reliability must be re-validated per model — not guaranteed to match Claude's</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-white fw-semibold">C. Hybrid: Minimize + Managed API</div>
+      <div class="card-body">
+        <p class="small">Tokenize structured identifiers before they reach the Gateway, redact/limit
+          free-text fields by intent, keep the managed API with a BAA as defense-in-depth.</p>
+        <ul class="small mb-0">
+          <li class="text-success"><i class="bi bi-check-lg"></i> Reduces what a BAA has to cover in the first place</li>
+          <li class="text-success"><i class="bi bi-check-lg"></i> Cheap wins available today: this platform's own <code>retrieve_node</code> already knows which fields an intent needs</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> Free-text fields (clinical notes, resolution notes) are hard to fully redact reliably</li>
+          <li class="text-danger"><i class="bi bi-x-lg"></i> Still needs a BAA behind it — minimization is defense-in-depth, not a substitute</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ Self-hosting deep dive ============ -->
+<h4 class="mb-3">Approach B in Detail: What Self-Hosting Actually Costs</h4>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h6>Model size vs. GPU requirement</h6>
+    <p class="small text-muted">
+      Approximate VRAM needed for 4-bit quantized inference — the practical way to run a model
+      this size on a single GPU rather than a multi-GPU cluster.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead class="table-primary"><tr><th>Model class</th><th>Example</th><th>Quantized VRAM</th><th>Fits on</th></tr></thead>
+        <tbody>
+          <tr><td>7B–13B</td><td>Llama 3.1 8B, Mistral 7B</td><td>~8–12 GB</td><td>RTX 4090 24GB</td></tr>
+          <tr><td>13B–34B</td><td>Qwen 2.5 32B</td><td>~20–24 GB</td><td>A100 40GB</td></tr>
+          <tr><td>70B</td><td>Llama 3.3 70B</td><td>~40–48 GB</td><td>A100 80GB / H100</td></tr>
+          <tr><td>MoE, large</td><td>Mixtral 8x22B</td><td>~70–90 GB</td><td>H100 80GB / B200</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mb-0">
+      For this platform's use case — structured tool-use across ten department chatbots — Llama
+      3.3 70B or Qwen 2.5 72B (both fit on a single A100 80GB quantized) are the realistic starting
+      points. Smaller models are cheaper to run but less reliable at the forced tool-use pattern
+      the Gateway depends on; that reliability gap needs to be measured directly, not assumed.
+    </p>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h6>Cloud GPU pricing (on-demand, per-GPU, USD)</h6>
+    <p class="small text-muted">
+      Sourced July 2026 from multiple independently-tracked pricing pages. GPU pricing moves fast
+      and varies 3–5x between specialist clouds and hyperscalers for identical hardware — treat this
+      as a snapshot to reason from, not a quote to budget against without re-checking.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-sm gpu-table">
+        <thead class="table-primary">
+          <tr><th>GPU</th><th>Cheapest on-demand</th><th>Provider</th><th>Hyperscaler reference</th><th>Fits</th></tr>
+        </thead>
+        <tbody>
+          {% for row in gpu_pricing %}
+          <tr>
+            <td class="fw-semibold">{{ row.gpu }}</td>
+            <td>{{ row.cheapest_ondemand }}</td>
+            <td>{{ row.provider }}</td>
+            <td class="small text-muted">{{ row.hyperscaler_ref }}</td>
+            <td class="small">{{ row.fits }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-5">
+  <div class="card-body">
+    <h6>Monthly cost: the realistic option for this platform's scale (A100 80GB)</h6>
+    <p class="small text-muted">
+      A100 80GB at the cheapest verified specialist-cloud on-demand rate, $1.49/hr — runs Llama
+      3.3 70B quantized, the realistic model class for replacing this Gateway's current workload.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead class="table-primary"><tr><th>Usage pattern</th><th>Hours/month</th><th>Monthly cost</th></tr></thead>
+        <tbody>
+          <tr><td>Always-on (24/7)</td><td>~730</td><td class="fw-semibold">~$1,089</td></tr>
+          <tr><td>Business hours only (12hr × 22 business days)</td><td>264</td><td class="fw-semibold">~$393</td></tr>
+          <tr><td>Business hours, weekdays, auto-scaled to zero overnight</td><td>264 + spin-up overhead</td><td class="fw-semibold">~$393–$450</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mb-0">
+      For reference: buying an A100 80GB outright runs roughly $7,000–$15,000 new (or
+      $4,000–$9,000 used) — at the always-on rental rate above (~$1,089/month), renting crosses
+      the new-hardware purchase price in roughly 6.4–13.8 months, or 3.7–8.3 months against the
+      used-hardware price range. Whether renting or buying makes sense depends entirely on how
+      long the deployment is expected to run and whether your organization wants the operational
+      burden of owning physical hardware at all — a decision this document does not make for you.
+    </p>
+  </div>
+</div>
+
+<div class="alert alert-light border small">
+  <i class="bi bi-info-circle me-1"></i>
+  Related training topic: <a href="{{ url_for('hub.training_topic', slug='self-hosting-ollama-cost-reality') }}">Self-Hosting an Open-Source LLM with Ollama: What It Actually Costs</a>
+  and <a href="{{ url_for('hub.training_topic', slug='hipaa-and-llms-what-changes') }}">HIPAA and LLMs: What Actually Changes in Your Architecture</a>.
+</div>
+
+{% endblock %}

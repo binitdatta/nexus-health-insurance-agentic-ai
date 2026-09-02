@@ -1,80 +1,1039 @@
 {% extends "base.html" %}
 {% block title %}Nexus Health Insurance — Agentic AI Platform{% endblock %}
+
 {% block content %}
 
-<div class="hero-gradient p-5 mb-5">
-  <h1 class="fw-bold mb-3"><i class="bi bi-robot me-2"></i>Agentic AI Platform</h1>
-  <p class="lead mb-0" style="max-width: 760px;">
-    Ten department-scoped chatbots, one central LLM Gateway, one Keycloak
-    realm. Every chatbot does its own retrieval against its own department's
-    data, relays the logged-in user's own token for every LLM call, and
-    supports human-in-the-loop record creation — approve, edit, or reject
-    before anything is written.
-  </p>
-  <div class="mt-4 d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('hub.architecture') }}" class="btn btn-light btn-sm">
-      <i class="bi bi-diagram-3 me-1"></i>How it's built
-    </a>
-    <a href="{{ url_for('hub.hipaa_compliance') }}" class="btn btn-outline-light btn-sm">
-      <i class="bi bi-shield-lock me-1"></i>HIPAA compliance status
-    </a>
-  </div>
-</div>
+<style>
+    /* ============================================================
+       Nexus Health Insurance — Home Page
+       ============================================================ */
 
-<h4 class="mb-3">Department Chatbots</h4>
-<div class="row g-3 mb-5">
-  {% for bot in nav_chatbots %}
-  <div class="col-sm-6 col-lg-4 col-xl-3">
-    <div class="card chatbot-card shadow-sm">
-      <div class="card-body d-flex flex-column">
-        <div class="d-flex align-items-center mb-2">
-          <i class="bi {{ bot.icon }} fs-4 text-primary me-2"></i>
-          <h6 class="card-title mb-0">{{ bot.name }}</h6>
+    .nexus-home {
+        --nexus-blue: #3157ff;
+        --nexus-blue-dark: #17339e;
+        --nexus-navy: #111c4e;
+        --nexus-cyan: #0ea5e9;
+        --nexus-indigo-soft: #eef2ff;
+        --nexus-blue-soft: #f3f6ff;
+        --nexus-green-soft: #edf9f2;
+        --nexus-purple-soft: #f6f1ff;
+        --nexus-border: #dfe6ff;
+        --nexus-text-muted: #667085;
+    }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+
+    .nexus-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.25rem;
+        padding: 3rem;
+        color: #fff;
+        background:
+            radial-gradient(circle at 88% 15%,
+                rgba(255,255,255,.18) 0,
+                rgba(255,255,255,0) 28%),
+            radial-gradient(circle at 70% 100%,
+                rgba(70,190,255,.20) 0,
+                rgba(70,190,255,0) 34%),
+            linear-gradient(
+                120deg,
+                #102b91 0%,
+                #2450e8 48%,
+                #4164ff 100%
+            );
+        box-shadow: 0 18px 45px rgba(26, 52, 150, .18);
+    }
+
+    .nexus-hero::after {
+        content: "";
+        position: absolute;
+        width: 340px;
+        height: 340px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 50%;
+        right: -130px;
+        top: -170px;
+    }
+
+    .nexus-hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .nexus-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .38rem .75rem;
+        margin-bottom: 1.1rem;
+        border: 1px solid rgba(255,255,255,.25);
+        border-radius: 999px;
+        background: rgba(255,255,255,.10);
+        font-size: .76rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .nexus-hero h1 {
+        font-size: clamp(2rem, 4vw, 3.35rem);
+        line-height: 1.05;
+        letter-spacing: -.035em;
+    }
+
+    .nexus-hero .lead {
+        color: rgba(255,255,255,.90);
+        line-height: 1.75;
+        max-width: 900px;
+    }
+
+    .hero-highlight {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .hero-action-primary {
+        background: #fff;
+        color: var(--nexus-blue-dark);
+        border: 1px solid #fff;
+        font-weight: 600;
+    }
+
+    .hero-action-primary:hover {
+        background: #f2f5ff;
+        color: var(--nexus-blue-dark);
+        border-color: #f2f5ff;
+    }
+
+    .hero-action-secondary {
+        color: #fff;
+        border-color: rgba(255,255,255,.55);
+        font-weight: 600;
+    }
+
+    .hero-action-secondary:hover {
+        background: rgba(255,255,255,.12);
+        color: #fff;
+        border-color: #fff;
+    }
+
+    /* ============================================================
+       PLATFORM SUMMARY STRIP
+       ============================================================ */
+
+    .platform-summary {
+        margin-top: -1.65rem;
+        position: relative;
+        z-index: 5;
+    }
+
+    .summary-shell {
+        background: #fff;
+        border: 1px solid var(--nexus-border);
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(30, 55, 135, .10);
+        overflow: hidden;
+    }
+
+    .summary-item {
+        padding: 1.15rem 1.25rem;
+        height: 100%;
+    }
+
+    .summary-item + .summary-item {
+        border-left: 1px solid #edf0f8;
+    }
+
+    .summary-value {
+        color: var(--nexus-blue);
+        font-weight: 800;
+        font-size: 1.45rem;
+        line-height: 1;
+    }
+
+    .summary-label {
+        margin-top: .25rem;
+        color: var(--nexus-text-muted);
+        font-size: .78rem;
+    }
+
+    /* ============================================================
+       SECTION HEADERS
+       ============================================================ */
+
+    .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 1rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .section-kicker {
+        color: var(--nexus-blue);
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        margin-bottom: .25rem;
+    }
+
+    .section-heading h2 {
+        color: #18213f;
+        margin-bottom: .25rem;
+        font-size: 1.55rem;
+        font-weight: 750;
+    }
+
+    .section-heading p {
+        color: var(--nexus-text-muted);
+        margin-bottom: 0;
+        max-width: 760px;
+    }
+
+    /* ============================================================
+       CHATBOT CARDS
+       ============================================================ */
+
+    .chatbot-card {
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        border: 1px solid var(--nexus-border);
+        border-radius: 1rem;
+        transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            border-color .18s ease;
+    }
+
+    .chatbot-card::before {
+        content: "";
+        display: block;
+        height: 4px;
+        background: linear-gradient(
+            90deg,
+            var(--nexus-blue),
+            #6581ff
+        );
+    }
+
+    .chatbot-card:hover {
+        transform: translateY(-4px);
+        border-color: #b9c7ff;
+        box-shadow: 0 14px 30px rgba(32, 61, 150, .12) !important;
+    }
+
+    .chatbot-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .chatbot-icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        min-width: 2.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .75rem;
+        background: var(--nexus-indigo-soft);
+        color: var(--nexus-blue);
+        font-size: 1.25rem;
+    }
+
+    .chatbot-name {
+        color: #17214a;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .chatbot-description {
+        line-height: 1.6;
+        min-height: 3rem;
+    }
+
+    .chatbot-port {
+        font-family: var(--bs-font-monospace);
+        font-size: .72rem;
+        background: #eef2ff;
+        color: #4256b7;
+        border-radius: 999px;
+        padding: .18rem .5rem;
+    }
+
+    .chatbot-open-btn {
+        border-radius: .55rem;
+        font-weight: 600;
+    }
+
+    /* ============================================================
+       INFORMATION CARDS
+       ============================================================ */
+
+    .platform-card {
+        border: 1px solid var(--nexus-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 5px 18px rgba(24, 45, 105, .06);
+    }
+
+    .platform-card-header {
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        margin-bottom: 1rem;
+    }
+
+    .platform-card-icon {
+        width: 2.6rem;
+        height: 2.6rem;
+        min-width: 2.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .7rem;
+        background: var(--nexus-indigo-soft);
+        color: var(--nexus-blue);
+        font-size: 1.15rem;
+    }
+
+    .platform-card h5 {
+        color: #17214a;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    /* ============================================================
+       INFRASTRUCTURE ROWS
+       ============================================================ */
+
+    .infra-item {
+        display: flex;
+        gap: .8rem;
+        padding: .9rem 0;
+        border-bottom: 1px solid #edf0f7;
+    }
+
+    .infra-item:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .infra-badge {
+        width: 2.25rem;
+        height: 2.25rem;
+        min-width: 2.25rem;
+        border-radius: .6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--nexus-blue-soft);
+        color: var(--nexus-blue);
+    }
+
+    .infra-title {
+        font-size: .87rem;
+        font-weight: 700;
+        color: #18213f;
+        margin-bottom: .15rem;
+    }
+
+    .infra-description {
+        color: var(--nexus-text-muted);
+        font-size: .8rem;
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       ARCHITECTURE PRINCIPLE
+       ============================================================ */
+
+    .architecture-principle {
+        border: 1px solid var(--nexus-border);
+        background:
+            linear-gradient(135deg, #f8faff 0%, #eef3ff 100%);
+        border-radius: 1rem;
+        padding: 1.25rem;
+    }
+
+    .architecture-flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        align-items: center;
+    }
+
+    .architecture-flow-node {
+        background: #fff;
+        border: 1px solid #ccd6ff;
+        color: #273eaa;
+        padding: .4rem .7rem;
+        border-radius: .5rem;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    .architecture-flow-arrow {
+        color: var(--nexus-blue);
+    }
+
+    /* ============================================================
+       TRAINING CARD
+       ============================================================ */
+
+    .training-callout {
+        background:
+            linear-gradient(
+                135deg,
+                var(--nexus-purple-soft),
+                #f8f9ff
+            );
+        border: 1px solid #e5dafc;
+        border-radius: .8rem;
+        padding: 1rem;
+    }
+
+    .training-callout i {
+        color: #7c3aed;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+
+    @media (max-width: 991.98px) {
+        .nexus-hero {
+            padding: 2.25rem;
+        }
+
+        .platform-summary {
+            margin-top: 1rem;
+        }
+
+        .summary-item + .summary-item {
+            border-left: 0;
+            border-top: 1px solid #edf0f8;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .nexus-hero {
+            padding: 1.6rem;
+            border-radius: .9rem;
+        }
+
+        .section-heading {
+            display: block;
+        }
+    }
+</style>
+
+
+<div class="nexus-home">
+
+    <!-- ========================================================
+         HERO
+         ======================================================== -->
+
+    <section class="nexus-hero mb-0">
+
+        <div class="nexus-hero-content">
+
+            <div class="nexus-eyebrow">
+                <i class="bi bi-stars"></i>
+                Healthcare Agentic AI Reference Platform
+            </div>
+
+            <h1 class="fw-bold mb-3">
+                <i class="bi bi-robot me-2"></i>
+                Agentic AI Platform
+            </h1>
+
+            <p class="lead mb-0">
+
+                Ten
+                <span class="hero-highlight">department-scoped chatbots</span>,
+                one
+                <span class="hero-highlight">central LLM Gateway</span>,
+                and one
+                <span class="hero-highlight">Keycloak realm</span>.
+
+                Every chatbot performs its own retrieval against its own
+                department's data, relays the logged-in user's own token for
+                every LLM call, and supports human-in-the-loop record creation
+                — approve, edit, or reject before anything is written.
+
+            </p>
+
+
+            <div class="mt-4 d-flex gap-2 flex-wrap">
+
+                <a href="{{ url_for('hub.architecture') }}"
+                   class="btn hero-action-primary px-3">
+
+                    <i class="bi bi-diagram-3 me-1"></i>
+                    Explore Architecture
+
+                </a>
+
+                <a href="{{ url_for('hub.hipaa_compliance') }}"
+                   class="btn hero-action-secondary px-3">
+
+                    <i class="bi bi-shield-lock me-1"></i>
+                    HIPAA Compliance Status
+
+                </a>
+
+            </div>
+
         </div>
-        <p class="card-text small text-muted flex-grow-1">{{ bot.description }}</p>
-        <a href="http://{{ hub_host }}:{{ bot.port }}/" target="_blank" rel="noopener"
-           class="btn btn-primary btn-sm mt-2">
-          Open <span class="text-white-50">:{{ bot.port }}</span>
-          <i class="bi bi-box-arrow-up-right ms-1"></i>
-        </a>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
 
-<div class="row g-3">
-  <div class="col-md-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-body">
-        <h6><i class="bi bi-hdd-network me-2 text-primary"></i>Shared Infrastructure</h6>
-        <table class="table table-sm mb-0">
-          <tbody>
-            <tr><th class="text-nowrap">Central LLM Gateway</th><td>every chatbot's only path to Anthropic — <code>:{{ 8000 }}</code></td></tr>
-            <tr><th class="text-nowrap">Keycloak (Central Realm)</th><td>PKCE public clients, department-scoped RBAC — <code>:8080</code></td></tr>
-            <tr><th class="text-nowrap">MySQL 8.x</th><td><code>health_ai_platform</code> — departments, domain tables, audit logs</td></tr>
-          </tbody>
-        </table>
-      </div>
+    </section>
+
+
+    <!-- ========================================================
+         PLATFORM AT A GLANCE
+         ======================================================== -->
+
+    <div class="platform-summary mb-5">
+
+        <div class="summary-shell">
+
+            <div class="row g-0">
+
+                <div class="col-lg-3">
+                    <div class="summary-item text-center">
+                        <div class="summary-value">10</div>
+                        <div class="summary-label">
+                            Department Chatbots
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3">
+                    <div class="summary-item text-center">
+                        <div class="summary-value">1</div>
+                        <div class="summary-label">
+                            Central LLM Gateway
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3">
+                    <div class="summary-item text-center">
+                        <div class="summary-value">1</div>
+                        <div class="summary-label">
+                            Keycloak Central Realm
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3">
+                    <div class="summary-item text-center">
+                        <div class="summary-value">HITL</div>
+                        <div class="summary-label">
+                            Human Approval Before Write
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-body">
-        <h6><i class="bi bi-camera-reels me-2 text-primary"></i>Training Content</h6>
-        <p class="small text-muted">
-          Every chatbot in this platform came with a real bug caught and
-          fixed before delivery — a version pin, a session-mutation gotcha,
-          a SQL apostrophe that silently broke a script. The Training menu
-          turns those into concrete video topics with real outlines, not
-          generic tutorial ideas.
-        </p>
-        <a href="{{ url_for('hub.training_index') }}" class="btn btn-outline-primary btn-sm">
-          Browse topics <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-      </div>
+
+
+    <!-- ========================================================
+         ARCHITECTURE PRINCIPLE
+         ======================================================== -->
+
+    <div class="architecture-principle mb-5">
+
+        <div class="row align-items-center g-3">
+
+            <div class="col-xl-4">
+
+                <div class="section-kicker">
+                    Architectural Model
+                </div>
+
+                <h5 class="fw-bold mb-1">
+                    Centralize AI access. Keep business context local.
+                </h5>
+
+                <p class="small text-muted mb-xl-0">
+                    Department applications own their data retrieval and
+                    business behavior while shared infrastructure handles
+                    authentication and external LLM connectivity.
+                </p>
+
+            </div>
+
+
+            <div class="col-xl-8">
+
+                <div class="architecture-flow">
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-person me-1"></i>
+                        User
+                    </span>
+
+                    <span class="architecture-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-shield-lock me-1"></i>
+                        Keycloak
+                    </span>
+
+                    <span class="architecture-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-robot me-1"></i>
+                        Department Chatbot
+                    </span>
+
+                    <span class="architecture-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-search me-1"></i>
+                        Department Retrieval
+                    </span>
+
+                    <span class="architecture-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-signpost-split me-1"></i>
+                        LLM Gateway
+                    </span>
+
+                    <span class="architecture-flow-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+
+                    <span class="architecture-flow-node">
+                        <i class="bi bi-stars me-1"></i>
+                        Anthropic
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
+
+    <!-- ========================================================
+         DEPARTMENT CHATBOTS
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+
+            <div>
+
+                <div class="section-kicker">
+                    Department Applications
+                </div>
+
+                <h2>
+                    Department Chatbots
+                </h2>
+
+                <p>
+                    Each department operates its own AI application with its
+                    own business context, data retrieval, workflows, and
+                    application port.
+                </p>
+
+            </div>
+
+            <div class="d-none d-md-block">
+
+                <span class="badge rounded-pill text-bg-primary">
+                    {{ nav_chatbots|length }} Active Applications
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-3">
+
+            {% for bot in nav_chatbots %}
+
+            <div class="col-sm-6 col-lg-4 col-xl-3">
+
+                <div class="card chatbot-card shadow-sm">
+
+                    <div class="card-body d-flex flex-column">
+
+                        <!-- Title -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+
+                            <div class="chatbot-icon">
+                                <i class="bi {{ bot.icon }}"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <div class="chatbot-name">
+                                    {{ bot.name }}
+                                </div>
+
+                                <span class="chatbot-port">
+                                    :{{ bot.port }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Description -->
+                        <p class="chatbot-description small text-muted flex-grow-1 mb-3">
+                            {{ bot.description }}
+                        </p>
+
+
+                        <!-- Action -->
+                        <a href="http://{{ hub_host }}:{{ bot.port }}/"
+                           target="_blank"
+                           rel="noopener"
+                           class="btn btn-primary btn-sm chatbot-open-btn">
+
+                            Open {{ bot.name }}
+
+                            <i class="bi bi-box-arrow-up-right ms-1"></i>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         SHARED PLATFORM + TRAINING
+         ======================================================== -->
+
+    <section class="mb-5">
+
+        <div class="section-heading">
+
+            <div>
+
+                <div class="section-kicker">
+                    Common Platform Services
+                </div>
+
+                <h2>
+                    Shared Infrastructure & Learning
+                </h2>
+
+                <p>
+                    The department applications remain independent where
+                    necessary while sharing common security, AI connectivity,
+                    persistence, and engineering knowledge.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-4">
+
+            <!-- ==================================================
+                 SHARED INFRASTRUCTURE
+                 ================================================== -->
+
+            <div class="col-lg-7">
+
+                <div class="card platform-card">
+
+                    <div class="card-body p-4">
+
+                        <div class="platform-card-header">
+
+                            <div class="platform-card-icon">
+                                <i class="bi bi-hdd-network"></i>
+                            </div>
+
+                            <div>
+                                <h5>Shared Infrastructure</h5>
+                                <div class="small text-muted">
+                                    Common capabilities used across all ten chatbots
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Gateway -->
+
+                        <div class="infra-item">
+
+                            <div class="infra-badge">
+                                <i class="bi bi-signpost-split"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <div class="d-flex justify-content-between
+                                            align-items-start gap-2">
+
+                                    <div class="infra-title">
+                                        Central LLM Gateway
+                                    </div>
+
+                                    <code>:8000</code>
+
+                                </div>
+
+                                <div class="infra-description">
+                                    Every chatbot's only path to Anthropic.
+                                    Provides the common integration boundary
+                                    between department applications and the
+                                    external LLM service.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Keycloak -->
+
+                        <div class="infra-item">
+
+                            <div class="infra-badge">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <div class="d-flex justify-content-between
+                                            align-items-start gap-2">
+
+                                    <div class="infra-title">
+                                        Keycloak — Central Realm
+                                    </div>
+
+                                    <code>:8080</code>
+
+                                </div>
+
+                                <div class="infra-description">
+                                    PKCE public clients and department-scoped
+                                    RBAC provide centralized authentication
+                                    while preserving department identity.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- MySQL -->
+
+                        <div class="infra-item">
+
+                            <div class="infra-badge">
+                                <i class="bi bi-database"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <div class="infra-title">
+                                    MySQL 8.x
+                                </div>
+
+                                <div class="infra-description">
+                                    <code>health_ai_platform</code> stores
+                                    departments, domain tables, operational
+                                    data, and audit logs.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 TRAINING CONTENT
+                 ================================================== -->
+
+            <div class="col-lg-5">
+
+                <div class="card platform-card">
+
+                    <div class="card-body p-4 d-flex flex-column">
+
+                        <div class="platform-card-header">
+
+                            <div class="platform-card-icon">
+                                <i class="bi bi-camera-reels"></i>
+                            </div>
+
+                            <div>
+                                <h5>Training Content</h5>
+                                <div class="small text-muted">
+                                    Lessons taken from the actual platform
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <p class="small text-muted">
+                            Every chatbot in this platform came with a real bug
+                            caught and fixed before delivery — a version pin, a
+                            session-mutation gotcha, a SQL apostrophe that
+                            silently broke a script.
+                        </p>
+
+
+                        <div class="training-callout mb-3">
+
+                            <div class="d-flex gap-2">
+
+                                <i class="bi bi-lightbulb-fill"></i>
+
+                                <div class="small">
+                                    The Training menu turns those real
+                                    engineering problems into concrete video
+                                    topics with practical outlines —
+                                    <strong>not generic tutorial ideas.</strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mt-auto">
+
+                            <a href="{{ url_for('hub.training_index') }}"
+                               class="btn btn-outline-primary btn-sm">
+
+                                Browse Training Topics
+
+                                <i class="bi bi-arrow-right ms-1"></i>
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         FINAL PLATFORM MESSAGE
+         ======================================================== -->
+
+    <section class="mb-2">
+
+        <div class="card border-0 shadow-sm"
+             style="
+                border-radius: 1rem;
+                background:
+                    linear-gradient(
+                        135deg,
+                        #f4f7ff 0%,
+                        #ffffff 60%
+                    );
+             ">
+
+            <div class="card-body p-4">
+
+                <div class="row align-items-center g-4">
+
+                    <div class="col-lg-8">
+
+                        <div class="section-kicker">
+                            Platform Design Principle
+                        </div>
+
+                        <h4 class="fw-bold mb-2">
+                            AI is part of the enterprise architecture —
+                            not a separate island.
+                        </h4>
+
+                        <p class="text-muted mb-0">
+                            The LLM is surrounded by the same kinds of
+                            capabilities expected from traditional enterprise
+                            applications: identity, authorization, data
+                            boundaries, controlled integration, observability,
+                            human approval, and auditable persistence.
+                        </p>
+
+                    </div>
+
+
+                    <div class="col-lg-4 text-lg-end">
+
+                        <a href="{{ url_for('hub.architecture') }}"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-diagram-3 me-1"></i>
+                            View Full Architecture
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
 </div>
 
 {% endblock %}
