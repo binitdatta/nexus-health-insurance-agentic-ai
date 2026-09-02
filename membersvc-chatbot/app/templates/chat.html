@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <div class="card shadow-sm">
+      <div class="card-header card-header-brand d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-robot me-2"></i>{{ dept_display_name }} Assistant</span>
+        <span class="badge bg-light text-dark" id="turnCostBadge" style="display:none;"></span>
+      </div>
+      <div class="card-body">
+        <div id="chatWindow" class="mb-3" style="height: 55vh; overflow-y: auto;">
+          <div class="chat-bubble-assistant p-3 mb-3" style="max-width: 80%;">
+            Hi {{ user.username }} — ask me about ticket statuses, member requests, policy questions, or say
+            something like <em>"open a grievance ticket for member MBR12345"</em> to draft a record for review.
+          </div>
+        </div>
+        <form id="chatForm" class="d-flex gap-2">
+          <input type="text" id="chatInput" class="form-control" placeholder="Ask about a ticket, a member, or member services policy..." autocomplete="off" required>
+          <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send"></i> Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="tableTemplate">
+  <div class="table-responsive mt-2">
+    <table class="table table-sm table-striped table-bordered bg-white">
+      <thead class="table-primary"></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</template>
+
+<template id="hitlTemplate">
+  <div class="card hitl-card mt-3">
+    <div class="card-body">
+      <h6 class="card-title"><i class="bi bi-person-check me-1"></i>Draft record for your review</h6>
+      <p class="card-text text-muted small hitl-rationale"></p>
+      <table class="table table-sm hitl-fields"></table>
+      <div class="hitl-missing text-warning small mb-2"></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-success hitl-approve"><i class="bi bi-check-lg"></i> Approve &amp; Commit</button>
+        <button class="btn btn-sm btn-outline-danger hitl-reject"><i class="bi bi-x-lg"></i> Reject</button>
+      </div>
+      <div class="hitl-result small mt-2"></div>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@13.0.2/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

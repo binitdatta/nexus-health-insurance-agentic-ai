@@ -1,0 +1,9 @@
+flask==3.0.3
+gunicorn==22.0.0
+requests==2.32.3
+PyMySQL==1.1.1
+DBUtils==3.1.0
+python-dotenv==1.0.1
+itsdangerous==2.2.0
+PyJWT[crypto]==2.9.0
+langgraph==0.2.34
